@@ -1,0 +1,166 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Label } from "@/components/ui/label";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { AuthFlowShell } from "@/components/auth/auth-flow-shell";
+import {
+  DEMO_RESET_OTP,
+  getResetEmail,
+  markOtpVerified,
+} from "@/lib/password-reset-flow";
+import { Copy } from "lucide-react";
+
+const schema = z.object({
+  otp: z
+    .string()
+    .length(6, "Enter the 6-digit code")
+    .regex(/^\d+$/, "Code must contain only numbers"),
+});
+
+export default function VerifyOtpPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+
+  const {
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { otp: "" },
+  });
+
+  useEffect(() => {
+    const stored = getResetEmail();
+    if (!stored) {
+      router.replace("/forgot-password");
+      return;
+    }
+    setEmail(stored);
+  }, [router]);
+
+  useEffect(() => {
+    const otp = digits.join("");
+    setValue("otp", otp, { shouldValidate: otp.length === 6 });
+  }, [digits, setValue]);
+
+  const updateDigit = (index: number, value: string) => {
+    const char = value.replace(/\D/g, "").slice(-1);
+    const next = [...digits];
+    next[index] = char;
+    setDigits(next);
+    if (char && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const onKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const onPaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    e.preventDefault();
+    const next = pasted.split("").concat(Array(6).fill("")).slice(0, 6);
+    setDigits(next);
+    inputRefs.current[Math.min(pasted.length, 5)]?.focus();
+  };
+
+  if (!email) {
+    return (
+      <div className="mesh-background flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-pulse rounded-xl bg-primary/20" />
+      </div>
+    );
+  }
+
+  return (
+    <AuthFlowShell
+      step={2}
+      title="Enter verification code"
+      description={`We sent a 6-digit code to ${email}. Enter it below to continue.`}
+    >
+      <form
+        className="space-y-5"
+        onSubmit={handleSubmit((values) => {
+          if (values.otp !== DEMO_RESET_OTP) {
+            toast.error("Invalid code. Use the demo OTP below.");
+            return;
+          }
+          markOtpVerified();
+          toast.success("Code verified");
+          router.push("/reset-password");
+        })}
+      >
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            One-time password
+          </Label>
+          <div className="flex justify-between gap-2" onPaste={onPaste}>
+            {digits.map((d, i) => (
+              <Input
+                key={i}
+                ref={(el) => {
+                  inputRefs.current[i] = el;
+                }}
+                inputMode="numeric"
+                autoComplete={i === 0 ? "one-time-code" : "off"}
+                maxLength={1}
+                value={d}
+                onChange={(e) => updateDigit(i, e.target.value)}
+                onKeyDown={(e) => onKeyDown(i, e)}
+                className="h-12 w-11 rounded-xl px-0 text-center text-lg font-semibold tabular-financial sm:h-14 sm:w-12"
+                aria-label={`Digit ${i + 1}`}
+              />
+            ))}
+          </div>
+          {errors.otp && <p className="text-sm text-destructive">{errors.otp.message}</p>}
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
+          <p className="font-medium text-foreground">Demo OTP</p>
+          <p className="mt-1 text-muted-foreground">Use this code in the preview environment:</p>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <code className="text-lg font-semibold tracking-[0.3em] text-primary">{DEMO_RESET_OTP}</code>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-lg"
+              onClick={() => {
+                setDigits(DEMO_RESET_OTP.split(""));
+                void navigator.clipboard.writeText(DEMO_RESET_OTP);
+                toast.success("OTP copied");
+              }}
+            >
+              <Copy className="mr-1 h-3.5 w-3.5" />
+              Copy & fill
+            </Button>
+          </div>
+        </div>
+
+        <Button type="submit" className="h-11 w-full rounded-xl">
+          Verify code
+        </Button>
+        <Link
+          href="/forgot-password"
+          className={cn(buttonVariants({ variant: "ghost" }), "w-full rounded-xl")}
+        >
+          Use a different email
+        </Link>
+      </form>
+    </AuthFlowShell>
+  );
+}
