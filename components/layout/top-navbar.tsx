@@ -17,19 +17,26 @@ import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/layout/notification-dropdown";
 import { cn } from "@/lib/utils";
 import { getUserInitials } from "@/lib/user-display";
+import { useLogoutMutation } from "@/services/authApi";
 
 export function TopNavbar({ profileHref }: { profileHref: string }) {
   const { user, logout } = useAuthStore();
   const { setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
+  const [logoutRequest] = useLogoutMutation();
 
   const initials = getUserInitials(user?.name);
-
   const isDark = resolvedTheme === "dark";
 
-  const handleLogout = () => {
-    logout();
-    router.replace("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutRequest().unwrap();
+    } catch {
+      // Still clear local session if API logout fails
+    } finally {
+      logout();
+      router.replace("/login");
+    }
   };
 
   return (
@@ -85,7 +92,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="rounded-lg text-destructive focus:text-destructive"
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log out

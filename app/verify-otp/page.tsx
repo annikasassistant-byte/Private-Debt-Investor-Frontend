@@ -12,12 +12,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AuthFlowShell } from "@/components/auth/auth-flow-shell";
-import {
-  DEMO_RESET_OTP,
-  getResetEmail,
-  markOtpVerified,
-} from "@/lib/password-reset-flow";
-import { Copy } from "lucide-react";
+import { getResetEmail, setResetToken } from "@/lib/password-reset-flow";
+import { useForgotPasswordMutation, useVerifyOtpMutation } from "@/services/authApi";
+import { getApiErrorMessage } from "@/services/auth-mappers";
 
 const schema = z.object({
   otp: z
@@ -31,6 +28,8 @@ export default function VerifyOtpPage() {
   const [email, setEmail] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
+  const [resendOtp, { isLoading: isResending }] = useForgotPasswordMutation();
 
   const {
     setValue,
@@ -94,14 +93,15 @@ export default function VerifyOtpPage() {
     >
       <form
         className="space-y-5"
-        onSubmit={handleSubmit((values) => {
-          if (values.otp !== DEMO_RESET_OTP) {
-            toast.error("Invalid code. Use the demo OTP below.");
-            return;
+        onSubmit={handleSubmit(async (values) => {
+          try {
+            const data = await verifyOtp({ email, otp: values.otp }).unwrap();
+            setResetToken(data.resetToken);
+            toast.success("Code verified");
+            router.push("/reset-password");
+          } catch (error) {
+            toast.error(getApiErrorMessage(error, "Invalid or expired code"));
           }
-          markOtpVerified();
-          toast.success("Code verified");
-          router.push("/reset-password");
         })}
       >
         <div className="space-y-2">
@@ -129,30 +129,24 @@ export default function VerifyOtpPage() {
           {errors.otp && <p className="text-sm text-destructive">{errors.otp.message}</p>}
         </div>
 
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
-          <p className="font-medium text-foreground">Demo OTP</p>
-          <p className="mt-1 text-muted-foreground">Use this code in the preview environment:</p>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <code className="text-lg font-semibold tracking-[0.3em] text-primary">{DEMO_RESET_OTP}</code>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-lg"
-              onClick={() => {
-                setDigits(DEMO_RESET_OTP.split(""));
-                void navigator.clipboard.writeText(DEMO_RESET_OTP);
-                toast.success("OTP copied");
-              }}
-            >
-              <Copy className="mr-1 h-3.5 w-3.5" />
-              Copy & fill
-            </Button>
-          </div>
-        </div>
-
-        <Button type="submit" className="h-11 w-full rounded-xl">
-          Verify code
+        <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
+          {isLoading ? "Verifying…" : "Verify code"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-full rounded-xl"
+          disabled={isResending}
+          onClick={async () => {
+            try {
+              await resendOtp({ email }).unwrap();
+              toast.success("A new code has been sent");
+            } catch (error) {
+              toast.error(getApiErrorMessage(error, "Unable to resend code"));
+            }
+          }}
+        >
+          {isResending ? "Resending…" : "Resend code"}
         </Button>
         <Link
           href="/forgot-password"

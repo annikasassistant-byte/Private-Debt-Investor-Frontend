@@ -3,46 +3,48 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User, UserRole } from "@/types";
-import { mockUsers } from "@/mock-data/users";
+import { clearTokens, persistTokens } from "@/services/config";
+import { getRedirectForRole, mapServerUserToClient } from "@/services/auth-mappers";
+import type { ServerUser } from "@/services/types";
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  setSession: (input: {
+    user: ServerUser | User;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+  }) => void;
+  setUser: (user: User | null) => void;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
 }
 
-const credentials: Record<string, string> = {
-  "admin@buyback.com": "Admin@123",
-  "investor@buyback.com": "Investor@123",
-};
+function toClientUser(user: ServerUser | User): User {
+  if ("name" in user && (user.role === "admin" || user.role === "investor")) {
+    return user as User;
+  }
+  return mapServerUserToClient(user as ServerUser);
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      login: async (email, password) => {
-        await new Promise((r) => setTimeout(r, 400));
-        const normalized = email.trim().toLowerCase();
-        if (credentials[normalized] !== password) {
-          return { ok: false, error: "Invalid email or password." };
-        }
-        const user = mockUsers.find((u) => u.email.toLowerCase() === normalized);
-        if (!user) {
-          return { ok: false, error: "User not found." };
-        }
-        set({ user, isAuthenticated: true });
-        return { ok: true };
+      setSession: ({ user, accessToken, refreshToken }) => {
+        if (accessToken) persistTokens(accessToken, refreshToken ?? undefined);
+        set({ user: toClientUser(user), isAuthenticated: true });
       },
-      logout: () => set({ user: null, isAuthenticated: false }),
+      setUser: (user) => set({ user, isAuthenticated: Boolean(user) }),
+      logout: () => {
+        clearTokens();
+        set({ user: null, isAuthenticated: false });
+      },
       hasRole: (role) => get().user?.role === role,
     }),
     { name: "depth-auth" }
   )
 );
 
-export function getRedirectForRole(role: UserRole): string {
-  return role === "admin" ? "/admin/dashboard" : "/dashboard";
-}
+export { getRedirectForRole };

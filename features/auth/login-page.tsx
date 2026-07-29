@@ -7,15 +7,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { ArrowRight, Copy, Layers, Shield, Sparkles, UserCircle } from "lucide-react";
+import { ArrowRight, Layers, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { getRedirectForRole, useAuthStore } from "@/lib/auth-store";
-import { DEMO_ADMIN, DEMO_INVESTOR } from "@/constants/navigation";
+import { useLoginMutation } from "@/services/authApi";
+import { getApiErrorMessage } from "@/services/auth-mappers";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -61,8 +61,8 @@ function Field({
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const login = useAuthStore((s) => s.login);
-  const [loading, setLoading] = useState(false);
+  const setSession = useAuthStore((s) => s.setSession);
+  const [login, { isLoading }] = useLoginMutation();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,7 +72,6 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -80,33 +79,24 @@ export function LoginPage() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    setLoading(true);
-    const result = await login(values.email, values.password);
-    setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
+    try {
+      const data = await login(values).unwrap();
+      setSession({
+        user: data.user,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      });
+      const mapped = useAuthStore.getState().user;
+      const redirect = searchParams.get("redirect");
+      if (redirect && redirect.startsWith("/")) {
+        router.push(redirect);
+      } else if (mapped) {
+        router.push(getRedirectForRole(mapped.role));
+      }
+      toast.success("Welcome back");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Invalid email or password"));
     }
-    const user = useAuthStore.getState().user;
-    const redirect = searchParams.get("redirect");
-    if (redirect && redirect.startsWith("/")) {
-      router.push(redirect);
-    } else if (user) {
-      router.push(getRedirectForRole(user.role));
-    }
-    toast.success("Welcome back");
-  };
-
-  const fillDemo = (type: "admin" | "investor") => {
-    const creds = type === "admin" ? DEMO_ADMIN : DEMO_INVESTOR;
-    setValue("email", creds.email);
-    setValue("password", creds.password);
-  };
-
-  const copyCreds = (type: "admin" | "investor") => {
-    const creds = type === "admin" ? DEMO_ADMIN : DEMO_INVESTOR;
-    void navigator.clipboard.writeText(`${creds.email} / ${creds.password}`);
-    toast.success("Credentials copied");
   };
 
   if (!mounted) {
@@ -204,57 +194,12 @@ export function LoginPage() {
               <Button
                 type="submit"
                 className="h-11 w-full rounded-xl text-base font-medium shadow-lg shadow-primary/20"
-                disabled={loading}
+                disabled={isLoading}
               >
-                {loading ? "Signing in…" : "Continue"}
-                {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {isLoading ? "Signing in…" : "Continue"}
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
-          </div>
-
-          <div className="glass-panel rounded-2xl p-5 sm:p-6">
-            <p className="text-sm font-semibold">Demo access</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Auto-fill credentials for the preview environment.
-            </p>
-            <div className="mt-4 space-y-3">
-              {(
-                [
-                  { type: "admin" as const, icon: Shield, label: "Administrator" },
-                  { type: "investor" as const, icon: UserCircle, label: "Investor" },
-                ] as const
-              ).map(({ type, icon: Icon, label }) => {
-                const creds = type === "admin" ? DEMO_ADMIN : DEMO_INVESTOR;
-                return (
-                  <div
-                    key={type}
-                    className={cn(
-                      "rounded-xl border border-border/50 bg-muted/20 p-4 transition-colors hover:bg-muted/35"
-                    )}
-                  >
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                      <Icon className="h-4 w-4 text-primary" />
-                      {label}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{creds.email}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button size="sm" className="rounded-lg" onClick={() => fillDemo(type)}>
-                        Login as {label}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-lg"
-                        onClick={() => copyCreds(type)}
-                      >
-                        <Copy className="mr-1 h-3.5 w-3.5" />
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </motion.div>
       </div>

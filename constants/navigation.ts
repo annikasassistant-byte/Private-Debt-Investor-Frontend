@@ -47,12 +47,3 @@ export const investorNav: NavItem[] = [
   { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export const DEMO_ADMIN = {
-  email: "admin@buyback.com",
-  password: "Admin@123",
-};
-
-export const DEMO_INVESTOR = {
-  email: "investor@buyback.com",
-  password: "Investor@123",
-};

@@ -12,11 +12,14 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AuthFlowShell } from "@/components/auth/auth-flow-shell";
 import { setResetEmail } from "@/lib/password-reset-flow";
+import { useForgotPasswordMutation } from "@/services/authApi";
+import { getApiErrorMessage } from "@/services/auth-mappers";
 
 const schema = z.object({ email: z.string().email("Enter a valid email") });
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
   const {
     register,
     handleSubmit,
@@ -33,10 +36,15 @@ export default function ForgotPasswordPage() {
     >
       <form
         className="space-y-5"
-        onSubmit={handleSubmit((values) => {
-          setResetEmail(values.email.trim());
-          toast.success("Verification code sent (demo)");
-          router.push("/verify-otp");
+        onSubmit={handleSubmit(async (values) => {
+          try {
+            await forgotPassword({ email: values.email.trim() }).unwrap();
+            setResetEmail(values.email.trim());
+            toast.success("If that email exists, a verification code has been sent");
+            router.push("/verify-otp");
+          } catch (error) {
+            toast.error(getApiErrorMessage(error, "Unable to send reset code"));
+          }
         })}
       >
         <div className="space-y-2">
@@ -55,8 +63,8 @@ export default function ForgotPasswordPage() {
           />
           {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
         </div>
-        <Button type="submit" className="h-11 w-full rounded-xl">
-          Continue
+        <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
+          {isLoading ? "Sending…" : "Continue"}
         </Button>
         <Link
           href="/login"
