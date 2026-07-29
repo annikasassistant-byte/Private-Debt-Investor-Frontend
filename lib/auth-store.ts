@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User, UserRole } from "@/types";
-import { clearTokens, persistTokens } from "@/services/config";
+import { clearTokens } from "@/services/config";
 import { getRedirectForRole, mapServerUserToClient } from "@/services/auth-mappers";
 import type { ServerUser } from "@/services/types";
 
@@ -32,8 +32,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      setSession: ({ user, accessToken, refreshToken }) => {
-        if (accessToken) persistTokens(accessToken, refreshToken ?? undefined);
+      setSession: ({ user }) => {
+        // Tokens live in httpOnly cookies only — never persist JWTs in the store/storage.
         set({ user: toClientUser(user), isAuthenticated: true });
       },
       setUser: (user) => set({ user, isAuthenticated: Boolean(user) }),

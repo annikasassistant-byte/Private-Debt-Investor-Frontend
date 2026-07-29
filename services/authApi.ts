@@ -4,9 +4,6 @@ import {
   API_V1,
   clearTokens,
   getOrCreateDeviceId,
-  getStoredAccessToken,
-  getStoredRefreshToken,
-  persistTokens,
 } from "@/services/config";
 import type {
   ApiSuccess,
@@ -17,12 +14,29 @@ import type {
   VerifyOtpPayload,
 } from "@/services/types";
 
+const CSRF_COOKIE_NAME = "csrf_token";
+
+function readBrowserCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const encoded = encodeURIComponent(name);
+  const parts = document.cookie.split("; ");
+  for (const part of parts) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    if (part.slice(0, eq) === name || part.slice(0, eq) === encoded) {
+      return decodeURIComponent(part.slice(eq + 1));
+    }
+  }
+  return null;
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_V1,
   credentials: "include",
   prepareHeaders: (headers) => {
-    const token = getStoredAccessToken();
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+    // Auth via httpOnly cookies. Double-submit CSRF when cookie is present.
+    const csrf = readBrowserCookie(CSRF_COOKIE_NAME);
+    if (csrf) headers.set("X-CSRF-Token", csrf);
     headers.set("Accept", "application/json");
     headers.set("X-Device-Id", getOrCreateDeviceId());
     headers.set("X-Device-Name", "Depth Web Client");
@@ -38,26 +52,20 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    const refreshToken = getStoredRefreshToken();
-    if (refreshToken) {
-      const refreshResult = await rawBaseQuery(
-        {
-          url: "/auth/refresh",
-          method: "POST",
-          body: { refreshToken, deviceId: getOrCreateDeviceId() },
-        },
-        api,
-        extraOptions
-      );
+    const refreshResult = await rawBaseQuery(
+      {
+        url: "/auth/refresh",
+        method: "POST",
+        body: { deviceId: getOrCreateDeviceId() },
+      },
+      api,
+      extraOptions
+    );
 
-      if (refreshResult.data) {
-        const payload = (refreshResult.data as ApiSuccess<Partial<AuthTokensPayload>>).data;
-        if (payload?.accessToken) {
-          persistTokens(payload.accessToken, payload.refreshToken || refreshToken);
-          result = await rawBaseQuery(args, api, extraOptions);
-          return result;
-        }
-      }
+    if (refreshResult.data) {
+      // Cookies refreshed by Set-Cookie; retry original request.
+      result = await rawBaseQuery(args, api, extraOptions);
+      return result;
     }
     clearTokens();
   }
@@ -102,7 +110,7 @@ export const authApi = createApi({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
-        body: { refreshToken: getStoredRefreshToken() },
+        body: {},
       }),
       transformResponse: (response: ApiSuccess<MessagePayload>) => response.data,
       async onQueryStarted(_arg, { queryFulfilled }) {

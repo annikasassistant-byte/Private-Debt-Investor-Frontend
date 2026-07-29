@@ -16,6 +16,7 @@ import { BrandedLoader } from "@/components/shared/branded-loader";
 import { getRedirectForRole, useAuthStore } from "@/lib/auth-store";
 import { useLoginMutation } from "@/services/authApi";
 import { getApiErrorMessage } from "@/services/auth-mappers";
+import { sanitizeRedirectPath } from "@/services/config";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -88,12 +89,11 @@ export function LoginPage() {
         refreshToken: data.refreshToken,
       });
       const mapped = useAuthStore.getState().user;
-      const redirect = searchParams.get("redirect");
-      if (redirect && redirect.startsWith("/")) {
-        router.push(redirect);
-      } else if (mapped) {
-        router.push(getRedirectForRole(mapped.role));
-      }
+      const redirect = sanitizeRedirectPath(
+        searchParams.get("redirect"),
+        mapped ? getRedirectForRole(mapped.role) : "/dashboard"
+      );
+      router.push(redirect);
       toast.success("Welcome back");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Invalid email or password"));
