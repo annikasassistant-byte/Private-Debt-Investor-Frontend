@@ -77,7 +77,7 @@ export default function InvestorDashboardPage() {
         description="Overview of your private debt allocation, cash flows, and upcoming obligations."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <MetricCard
           title="Investment Amount"
           value={formatCurrency(investment.principal)}
@@ -101,6 +101,13 @@ export default function InvestorDashboardPage() {
           value={formatCurrency(investment.principalRepaid)}
           icon={PiggyBank}
           delay={0.15}
+        />
+        <MetricCard
+          title="Total Repayments"
+          value={formatCurrency(totalRepaid)}
+          icon={Calendar}
+          subtitle={`Start ${formatDate(investment.startDate)}`}
+          delay={0.2}
         />
       </div>
 

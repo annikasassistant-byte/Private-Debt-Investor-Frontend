@@ -8,14 +8,34 @@ export const AUTH_TOKEN_KEY = "depth-access-token";
 export const REFRESH_TOKEN_KEY = "depth-refresh-token";
 export const DEVICE_ID_KEY = "depth-device-id";
 
+/**
+ * In-memory token cache only (never localStorage).
+ * Auth prefers httpOnly cookies set by the API; memory tokens support Socket.IO
+ * and same-tab Bearer fallback after login/refresh.
+ */
+let memoryAccessToken: string | null = null;
+let memoryRefreshToken: string | null = null;
+
+function clearLegacyLocalStorageTokens() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getStoredAccessToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  clearLegacyLocalStorageTokens();
+  return memoryAccessToken;
 }
 
 export function getStoredRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  clearLegacyLocalStorageTokens();
+  return memoryRefreshToken;
 }
 
 export function getOrCreateDeviceId(): string {
@@ -30,14 +50,14 @@ export function getOrCreateDeviceId(): string {
 
 export function persistTokens(accessToken?: string | null, refreshToken?: string | null) {
   if (typeof window === "undefined") return;
-  if (accessToken) localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
-  else localStorage.removeItem(AUTH_TOKEN_KEY);
-  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  else if (refreshToken === null) localStorage.removeItem(REFRESH_TOKEN_KEY);
+  clearLegacyLocalStorageTokens();
+  if (accessToken !== undefined) memoryAccessToken = accessToken || null;
+  if (refreshToken !== undefined) memoryRefreshToken = refreshToken || null;
 }
 
 export function clearTokens() {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  memoryAccessToken = null;
+  memoryRefreshToken = null;
+  clearLegacyLocalStorageTokens();
 }

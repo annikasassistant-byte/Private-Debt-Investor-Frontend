@@ -1,13 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import {
-  API_V1,
-  clearTokens,
-  getOrCreateDeviceId,
-  getStoredAccessToken,
-  getStoredRefreshToken,
-  persistTokens,
-} from "@/services/config";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "@/services/baseQuery";
+import { clearTokens, getOrCreateDeviceId, getStoredRefreshToken } from "@/services/config";
 import type {
   ApiSuccess,
   AuthTokensPayload,
@@ -16,54 +9,6 @@ import type {
   ServerUser,
   VerifyOtpPayload,
 } from "@/services/types";
-
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: API_V1,
-  credentials: "include",
-  prepareHeaders: (headers) => {
-    const token = getStoredAccessToken();
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-    headers.set("Accept", "application/json");
-    headers.set("X-Device-Id", getOrCreateDeviceId());
-    headers.set("X-Device-Name", "Depth Web Client");
-    return headers;
-  },
-});
-
-const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
-  args,
-  api,
-  extraOptions
-) => {
-  let result = await rawBaseQuery(args, api, extraOptions);
-
-  if (result.error && result.error.status === 401) {
-    const refreshToken = getStoredRefreshToken();
-    if (refreshToken) {
-      const refreshResult = await rawBaseQuery(
-        {
-          url: "/auth/refresh",
-          method: "POST",
-          body: { refreshToken, deviceId: getOrCreateDeviceId() },
-        },
-        api,
-        extraOptions
-      );
-
-      if (refreshResult.data) {
-        const payload = (refreshResult.data as ApiSuccess<Partial<AuthTokensPayload>>).data;
-        if (payload?.accessToken) {
-          persistTokens(payload.accessToken, payload.refreshToken || refreshToken);
-          result = await rawBaseQuery(args, api, extraOptions);
-          return result;
-        }
-      }
-    }
-    clearTokens();
-  }
-
-  return result;
-};
 
 export const authApi = createApi({
   reducerPath: "authApi",

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DocumentCard } from "@/components/documents/document-card";
+import { InvestorMultiSelect } from "@/components/documents/investor-multi-select";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -41,7 +42,7 @@ export default function AdminContractsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [type, setType] = useState("loan_agreement");
-  const [investorId, setInvestorId] = useState("");
+  const [investorIds, setInvestorIds] = useState<string[]>([]);
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
   if (isError) {
@@ -110,21 +111,11 @@ export default function AdminContractsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Assign to investor</Label>
-              <Select value={investorId} onValueChange={(v) => setInvestorId(v || "")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select investor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {investors.map((inv) => (
-                    <SelectItem key={inv.id} value={inv.id}>
-                      {inv.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <InvestorMultiSelect
+              investors={investors.map((i) => ({ id: i.id, name: i.name }))}
+              selectedIds={investorIds}
+              onChange={setInvestorIds}
+            />
           </div>
           <DialogFooter>
             <Button
@@ -135,14 +126,16 @@ export default function AdminContractsPage() {
                 fd.append("title", title);
                 fd.append("type", type);
                 fd.append("file", file);
-                if (investorId) fd.append("investorId", investorId);
+                if (investorIds.length) {
+                  fd.append("assignedInvestors", JSON.stringify(investorIds));
+                }
                 try {
                   await createContract(fd).unwrap();
                   toast.success("Contract uploaded");
                   setOpen(false);
                   setFile(null);
                   setTitle("");
-                  setInvestorId("");
+                  setInvestorIds([]);
                 } catch (error) {
                   toast.error(getApiErrorMessage(error, "Upload failed"));
                 }

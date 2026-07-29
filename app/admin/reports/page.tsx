@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DocumentCard } from "@/components/documents/document-card";
+import { InvestorMultiSelect } from "@/components/documents/investor-multi-select";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -43,7 +44,7 @@ export default function AdminReportsPage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("other");
   const [period, setPeriod] = useState("");
-  const [investorId, setInvestorId] = useState("");
+  const [investorIds, setInvestorIds] = useState<string[]>([]);
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
   if (isError) {
@@ -115,21 +116,11 @@ export default function AdminReportsPage() {
                 onChange={(e) => setPeriod(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Assign to investor</Label>
-              <Select value={investorId} onValueChange={(v) => setInvestorId(v || "")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select investor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {investors.map((inv) => (
-                    <SelectItem key={inv.id} value={inv.id}>
-                      {inv.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <InvestorMultiSelect
+              investors={investors.map((i) => ({ id: i.id, name: i.name }))}
+              selectedIds={investorIds}
+              onChange={setInvestorIds}
+            />
           </div>
           <DialogFooter>
             <Button
@@ -141,7 +132,9 @@ export default function AdminReportsPage() {
                 fd.append("category", category);
                 fd.append("period", period);
                 fd.append("file", file);
-                if (investorId) fd.append("investorId", investorId);
+                if (investorIds.length) {
+                  fd.append("assignedInvestors", JSON.stringify(investorIds));
+                }
                 try {
                   await createReport(fd).unwrap();
                   toast.success("Report uploaded");
@@ -149,7 +142,7 @@ export default function AdminReportsPage() {
                   setFile(null);
                   setTitle("");
                   setPeriod("");
-                  setInvestorId("");
+                  setInvestorIds([]);
                 } catch (error) {
                   toast.error(getApiErrorMessage(error, "Upload failed"));
                 }

@@ -12,15 +12,32 @@ export const paymentColumns: ColumnDef<Payment>[] = [
     accessorKey: "dueDate",
     header: ({ column }) => (
       <Button variant="ghost" size="sm" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Due Date
+        Scheduled Due
         <ArrowUpDown className="ml-2 h-3.5 w-3.5" />
       </Button>
     ),
-    cell: ({ row }) => formatDate(row.original.dueDate),
+    cell: ({ row }) => {
+      const p = row.original;
+      const note = p.dateAdjustmentNote;
+      return (
+        <div>
+          <div>{formatDate(p.dueDate)}</div>
+          {note ? (
+            <div className="max-w-[180px] truncate text-[11px] text-muted-foreground" title={note}>
+              {note}
+            </div>
+          ) : p.contractualDueDate && p.contractualDueDate !== p.dueDate ? (
+            <div className="text-[11px] text-muted-foreground">
+              Contractual {formatDate(p.contractualDueDate)}
+            </div>
+          ) : null}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "paymentDate",
-    header: "Payment Date",
+    header: "Actual Payment",
     cell: ({ row }) =>
       row.original.paymentDate ? formatDate(row.original.paymentDate) : "—",
   },

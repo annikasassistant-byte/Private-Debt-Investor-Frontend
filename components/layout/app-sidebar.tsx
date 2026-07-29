@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "@/constants/navigation";
+import type { NavGroup, NavItem } from "@/constants/navigation";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -21,8 +22,52 @@ import {
 import { Layers } from "lucide-react";
 import { motion } from "framer-motion";
 
-export function AppSidebar({ items, label }: { items: NavItem[]; label: string }) {
+function isNavActive(pathname: string, href: string) {
+  return (
+    pathname === href ||
+    (href !== "/dashboard" && href !== "/admin/dashboard" && pathname.startsWith(href))
+  );
+}
+
+function NavMenuItems({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  return (
+    <SidebarMenu className="gap-1">
+      {items.map((item) => {
+        const active = isNavActive(pathname, item.href);
+        return (
+          <SidebarMenuItem key={item.href}>
+            <SidebarMenuButton
+              isActive={active}
+              tooltip={item.title}
+              render={<Link href={item.href} />}
+              className={cn(
+                "rounded-xl transition-all duration-200",
+                active && "bg-primary/10 font-medium text-primary shadow-sm"
+              )}
+            >
+              <item.icon strokeWidth={active ? 2 : 1.75} />
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+}
+
+export function AppSidebar({
+  items,
+  groups,
+  label,
+}: {
+  items?: NavItem[];
+  groups?: NavGroup[];
+  label: string;
+}) {
+  const navGroups: NavGroup[] =
+    groups && groups.length > 0 ? groups : [{ items: items || [] }];
+  const firstHref = navGroups[0]?.items[0]?.href ?? "/";
 
   return (
     <Sidebar
@@ -30,7 +75,7 @@ export function AppSidebar({ items, label }: { items: NavItem[]; label: string }
       className="border-r border-border/40 bg-sidebar/80 backdrop-blur-xl"
     >
       <SidebarHeader className="border-b border-border/30 px-4 py-5">
-        <Link href={items[0]?.href ?? "/"} className="flex items-center gap-3 font-semibold">
+        <Link href={firstHref} className="flex items-center gap-3 font-semibold">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/20">
             <Layers className="h-5 w-5" strokeWidth={1.75} />
           </div>
@@ -41,35 +86,14 @@ export function AppSidebar({ items, label }: { items: NavItem[]; label: string }
         </Link>
       </SidebarHeader>
       <SidebarContent className="px-2 py-3">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {items.map((item) => {
-                const active =
-                  pathname === item.href ||
-                  (item.href !== "/dashboard" &&
-                    item.href !== "/admin/dashboard" &&
-                    pathname.startsWith(item.href));
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      isActive={active}
-                      tooltip={item.title}
-                      render={<Link href={item.href} />}
-                      className={cn(
-                        "rounded-xl transition-all duration-200",
-                        active && "bg-primary/10 font-medium text-primary shadow-sm"
-                      )}
-                    >
-                      <item.icon strokeWidth={active ? 2 : 1.75} />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navGroups.map((group, idx) => (
+          <SidebarGroup key={group.label || `group-${idx}`}>
+            {group.label ? <SidebarGroupLabel>{group.label}</SidebarGroupLabel> : null}
+            <SidebarGroupContent>
+              <NavMenuItems items={group.items} />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter className="border-t border-border/30 p-4 text-[11px] text-muted-foreground group-data-[collapsible=icon]:hidden">
         © 2026 Depth Capital · Private Debt

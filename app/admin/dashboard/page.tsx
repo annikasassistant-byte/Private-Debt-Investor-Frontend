@@ -82,7 +82,11 @@ export default function AdminDashboardPage() {
           title="Portfolio Value"
           value={formatCurrency(stats.portfolioValue)}
           icon={Wallet}
-          trend={typeof stats.portfolioGrowth === "number" ? stats.portfolioGrowth : undefined}
+          subtitle={
+            typeof stats.repaidSharePercent === "number" || typeof stats.portfolioGrowth === "number"
+              ? `${stats.repaidSharePercent ?? stats.portfolioGrowth}% of principal+interest repaid`
+              : undefined
+          }
         />
         <MetricCard
           title="Outstanding Balance"

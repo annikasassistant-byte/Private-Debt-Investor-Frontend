@@ -27,11 +27,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
 
     const token = getStoredAccessToken();
-    if (!token) return;
-
+    // Prefer Bearer when available; otherwise rely on httpOnly cookie (withCredentials).
     const socket = io(API_BASE_URL, {
       path: "/socket.io",
-      auth: { token },
+      auth: token ? { token } : {},
       transports: ["websocket", "polling"],
       withCredentials: true,
     });

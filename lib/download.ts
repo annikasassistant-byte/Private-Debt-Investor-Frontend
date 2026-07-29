@@ -9,7 +9,6 @@ import {
 
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getStoredRefreshToken();
-  if (!refreshToken) return null;
   try {
     const res = await fetch(`${API_V1}/auth/refresh`, {
       method: "POST",
@@ -20,7 +19,10 @@ async function refreshAccessToken(): Promise<string | null> {
         "X-Device-Id": getOrCreateDeviceId(),
         "X-Device-Name": "Depth Web Client",
       },
-      body: JSON.stringify({ refreshToken, deviceId: getOrCreateDeviceId() }),
+      body: JSON.stringify({
+        ...(refreshToken ? { refreshToken } : {}),
+        deviceId: getOrCreateDeviceId(),
+      }),
     });
     if (!res.ok) {
       clearTokens();
@@ -28,11 +30,14 @@ async function refreshAccessToken(): Promise<string | null> {
     }
     const json = await res.json();
     const accessToken = json?.data?.accessToken as string | undefined;
-    const nextRefresh = (json?.data?.refreshToken as string | undefined) || refreshToken;
+    const nextRefresh =
+      (json?.data?.refreshToken as string | undefined) || refreshToken || null;
     if (accessToken) {
       persistTokens(accessToken, nextRefresh);
       return accessToken;
     }
+    // Cookie-only refresh succeeded without body token — retry with cookies.
+    return "";
   } catch {
     clearTokens();
   }
@@ -50,12 +55,12 @@ async function authorizedFetch(url: string, init: RequestInit = {}, retry = true
   const res = await fetch(url, { ...init, headers, credentials: "include" });
   if (res.status === 401 && retry) {
     const next = await refreshAccessToken();
-    if (next) return authorizedFetch(url, init, false);
+    if (next !== null) return authorizedFetch(url, init, false);
   }
   return res;
 }
 
-/** Download a protected API file (reports/contracts/exports) with Bearer auth. */
+/** Download a protected API file (reports/contracts/exports) with cookie/Bearer auth. */
 export async function downloadAuthenticatedFile(
   pathOrUrl: string,
   filename: string
@@ -90,7 +95,6 @@ export async function previewAuthenticatedFile(pathOrUrl: string): Promise<void>
   const blob = await res.blob();
   const objectUrl = URL.createObjectURL(blob);
   window.open(objectUrl, "_blank", "noopener,noreferrer");
-  // Revoke later so the tab can load
   setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
 }
 
