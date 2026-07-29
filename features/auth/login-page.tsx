@@ -6,12 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Layers, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
+import { BrandedLoader } from "@/components/shared/branded-loader";
 import { getRedirectForRole, useAuthStore } from "@/lib/auth-store";
 import { useLoginMutation } from "@/services/authApi";
 import { getApiErrorMessage } from "@/services/auth-mappers";
@@ -102,7 +103,7 @@ export function LoginPage() {
   if (!mounted) {
     return (
       <div className="mesh-background flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-pulse rounded-xl bg-primary/20" />
+        <BrandedLoader className="min-h-0" />
       </div>
     );
   }
@@ -113,6 +114,36 @@ export function LoginPage() {
         <div className="absolute -left-40 top-0 h-[28rem] w-[28rem] rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-[24rem] w-[24rem] rounded-full bg-chart-2/15 blur-3xl" />
       </div>
+
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="login-loader"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/55 backdrop-blur-md"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+            aria-label="Signing in"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="glass-panel-strong mx-4 flex w-full max-w-xs flex-col items-center rounded-2xl px-8 py-10 shadow-xl shadow-primary/10"
+            >
+              <BrandedLoader className="min-h-0 gap-5" />
+              <p className="mt-1 text-center text-sm text-muted-foreground">
+                Signing you in securely…
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.section
         initial={{ opacity: 0, x: -20 }}
@@ -170,6 +201,7 @@ export function LoginPage() {
                   type="email"
                   autoComplete="email"
                   className="h-11 rounded-xl border-border/60 bg-background/60"
+                  disabled={isLoading}
                   {...register("email")}
                 />
               </Field>
@@ -179,12 +211,15 @@ export function LoginPage() {
                     id="password"
                     autoComplete="current-password"
                     className="h-11 rounded-xl border-border/60 bg-background/60"
+                    disabled={isLoading}
                     {...register("password")}
                   />
                   <div className="flex justify-end">
                     <Link
                       href="/forgot-password"
                       className="text-xs font-medium text-primary hover:underline"
+                      tabIndex={isLoading ? -1 : undefined}
+                      aria-disabled={isLoading}
                     >
                       Forgot password?
                     </Link>
@@ -196,8 +231,20 @@ export function LoginPage() {
                 className="h-11 w-full rounded-xl text-base font-medium shadow-lg shadow-primary/20"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in…" : "Continue"}
-                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="relative flex h-4 w-4 items-center justify-center">
+                      <span className="absolute inset-0 rounded-full border-2 border-primary-foreground/25" />
+                      <span className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-primary-foreground" />
+                    </span>
+                    Signing in…
+                  </span>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </form>
           </div>
