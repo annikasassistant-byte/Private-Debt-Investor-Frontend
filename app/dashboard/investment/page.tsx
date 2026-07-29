@@ -7,18 +7,34 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { deriveInvestmentDisplayStatus } from "@/lib/investment-status";
 
 export default function InvestorInvestmentPage() {
-  const { data, isLoading } = useGetInvestorDashboardQuery();
+  const { data, isLoading, isError, refetch } = useGetInvestorDashboardQuery();
   if (isLoading) return <LoadingSkeleton variant="page" />;
+  if (isError) {
+    return (
+      <EmptyState
+        title="Unable to load investment"
+        description="Check your connection and try again."
+        actionLabel="Retry"
+        onAction={() => refetch()}
+      />
+    );
+  }
   const investment = data?.investment;
+  const payments = data?.payments || [];
   if (!investment) {
-    return <EmptyState title="No investment" description="No investment is linked to your account." />;
+    return (
+      <EmptyState title="No investment" description="No investment is linked to your account." />
+    );
   }
 
+  const displayStatus = deriveInvestmentDisplayStatus(investment, payments);
   const repaidPct = investment.principal
     ? Math.min(100, Math.round((investment.principalRepaid / investment.principal) * 100))
     : 0;
+  const totalRepaid = (investment.principalRepaid || 0) + (investment.interestEarned || 0);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -29,7 +45,7 @@ export default function InvestorInvestmentPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{formatCurrency(investment.principal)}</CardTitle>
-          <StatusBadge status={investment.status} />
+          <StatusBadge status={displayStatus} />
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -39,13 +55,16 @@ export default function InvestorInvestmentPage() {
             </div>
             <Progress value={repaidPct} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 text-sm">
+          <div className="grid gap-4 text-sm sm:grid-cols-2">
             {[
+              ["Start date", formatDate(investment.startDate)],
               ["Interest rate", `${investment.interestRate}% p.a.`],
               ["Term", `${investment.termMonths} months`],
               ["Monthly payment", formatCurrency(investment.monthlyPayment)],
               ["Outstanding", formatCurrency(investment.outstandingBalance)],
+              ["Total repayments", formatCurrency(totalRepaid)],
               ["Interest earned", formatCurrency(investment.interestEarned)],
+              ["Principal repaid", formatCurrency(investment.principalRepaid)],
               ["Next payment", formatCurrency(investment.nextPaymentAmount)],
               ["Next due", formatDate(investment.nextPaymentDate)],
               ["Maturity", formatDate(investment.maturityDate)],

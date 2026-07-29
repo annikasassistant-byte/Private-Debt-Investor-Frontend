@@ -13,7 +13,7 @@ import {
   BalanceLineChart,
   PrincipalInterestChart,
 } from "@/components/charts/dashboard-charts";
-import { useInvestorDashboard } from "@/hooks/use-mock-queries";
+import { useGetInvestorDashboardQuery } from "@/services/domainApi";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -21,19 +21,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Timeline } from "@/components/timeline/timeline";
 import { SectionHeader } from "@/components/shared/section-header";
 import { PageHeader } from "@/components/shared/page-header";
-import { kpiSparklines } from "@/lib/sparkline-presets";
 import { EmptyState } from "@/components/shared/empty-state";
-
-
-
-
-
-
+import { deriveInvestmentDisplayStatus } from "@/lib/investment-status";
 
 export default function InvestorDashboardPage() {
-  const { data, isLoading } = useInvestorDashboard();
+  const { data, isLoading, isError, refetch } = useGetInvestorDashboardQuery();
 
   if (isLoading || !data) return <LoadingSkeleton variant="page" />;
+  if (isError) {
+    return (
+      <EmptyState
+        title="Unable to load dashboard"
+        description="Check your connection and try again."
+        actionLabel="Retry"
+        onAction={() => refetch()}
+      />
+    );
+  }
 
   const { investment, payments = [], timeline = [] } = data;
 
@@ -54,6 +58,8 @@ export default function InvestorDashboardPage() {
     );
   }
 
+  const displayStatus = deriveInvestmentDisplayStatus(investment, payments);
+  const totalRepaid = (investment.principalRepaid || 0) + (investment.interestEarned || 0);
   const recent = [...payments].reverse().slice(0, 5);
   const chartPayments = payments.slice(-12).map((p) => ({
     month: p.dueDate.slice(0, 7),
@@ -76,30 +82,24 @@ export default function InvestorDashboardPage() {
           title="Investment Amount"
           value={formatCurrency(investment.principal)}
           icon={Wallet}
-          sparkline={kpiSparklines.stable}
           delay={0}
         />
         <MetricCard
           title="Outstanding Balance"
           value={formatCurrency(investment.outstandingBalance)}
           icon={CircleDollarSign}
-          sparkline={kpiSparklines.decline}
-          trend={-2.1}
           delay={0.05}
         />
         <MetricCard
           title="Interest Earned"
           value={formatCurrency(investment.interestEarned)}
           icon={TrendingUp}
-          trend={4.2}
-          sparkline={kpiSparklines.growth}
           delay={0.1}
         />
         <MetricCard
           title="Principal Repaid"
           value={formatCurrency(investment.principalRepaid)}
           icon={PiggyBank}
-          sparkline={kpiSparklines.growth}
           delay={0.15}
         />
       </div>
@@ -114,9 +114,11 @@ export default function InvestorDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4 p-5 text-sm">
             {[
-              ["Status", <StatusBadge key="s" status={investment.status} />],
+              ["Status", <StatusBadge key="s" status={displayStatus} />],
+              ["Start date", formatDate(investment.startDate)],
               ["Rate", `${investment.interestRate}% p.a.`],
               ["Term", `${investment.termMonths} months`],
+              ["Total repayments", formatCurrency(totalRepaid)],
               ["Next payment", formatCurrency(investment.nextPaymentAmount)],
               ["Due date", formatDate(investment.nextPaymentDate)],
               ["Maturity", formatDate(investment.maturityDate)],
@@ -174,7 +176,10 @@ export default function InvestorDashboardPage() {
             ))}
           </CardContent>
         </Card>
-        <div className="rounded-2xl border border-border/40 bg-card/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div
+          className="rounded-2xl border border-border/40 bg-card/50 p-5"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
           <SectionHeader title="Timeline preview" description="Latest investment events" />
           <div className="mt-6 max-h-[380px] overflow-auto pr-1">
             <Timeline events={timeline} />

@@ -81,6 +81,9 @@ export interface Payment {
   remainingBalance: number;
   amountPaid?: number;
   status: PaymentStatus;
+  notes?: string;
+  contractualDueDate?: string;
+  dateAdjustmentNote?: string;
 }
 
 export type TimelineEventType =

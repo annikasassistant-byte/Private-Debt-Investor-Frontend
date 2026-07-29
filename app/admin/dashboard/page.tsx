@@ -15,12 +15,11 @@ import {
   PortfolioGrowthChart,
   PrincipalInterestChart,
 } from "@/components/charts/dashboard-charts";
-import { useAdminStats } from "@/hooks/use-mock-queries";
+import { useGetAdminStatsQuery } from "@/services/domainApi";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
-import { kpiSparklines } from "@/lib/sparkline-presets";
 import {
   useGetInvestmentsQuery,
   useGetPaymentsQuery,
@@ -30,7 +29,7 @@ import { timelineToNotifications } from "@/lib/timeline-notifications";
 import { EmptyState } from "@/components/shared/empty-state";
 
 export default function AdminDashboardPage() {
-  const { data: stats, isLoading } = useAdminStats();
+  const { data: stats, isLoading } = useGetAdminStatsQuery();
   const { data: payments = [] } = useGetPaymentsQuery();
   const { data: timeline = [] } = useGetTimelineQuery();
   const { data: investments = [] } = useGetInvestmentsQuery();
@@ -54,7 +53,7 @@ export default function AdminDashboardPage() {
     investments.reduce<Record<string, number>>((acc, inv) => {
       acc[inv.status] = (acc[inv.status] || 0) + inv.principal;
       return acc;
-    }, {}),
+    }, {})
   ).map(([name, value]) => ({
     name,
     value,
@@ -78,30 +77,22 @@ export default function AdminDashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Active Investors"
-          value={String(stats.totalInvestors)}
-          icon={Users}
-          sparkline={kpiSparklines.stable}
-        />
+        <MetricCard title="Active Investors" value={String(stats.totalInvestors)} icon={Users} />
         <MetricCard
           title="Portfolio Value"
           value={formatCurrency(stats.portfolioValue)}
           icon={Wallet}
-          sparkline={kpiSparklines.growth}
-          trend={stats.portfolioGrowth}
+          trend={typeof stats.portfolioGrowth === "number" ? stats.portfolioGrowth : undefined}
         />
         <MetricCard
           title="Outstanding Balance"
           value={formatCurrency(stats.outstanding)}
           icon={Building2}
-          sparkline={kpiSparklines.decline}
         />
         <MetricCard
           title="Total Investments"
           value={String(stats.totalInvestments)}
           icon={TrendingUp}
-          sparkline={kpiSparklines.stable}
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -109,26 +100,21 @@ export default function AdminDashboardPage() {
           title="Interest Earned"
           value={formatCurrency(stats.interestEarned)}
           icon={Banknote}
-          trend={stats.portfolioGrowth}
-          sparkline={kpiSparklines.growth}
         />
         <MetricCard
           title="Upcoming Payments"
           value={String(stats.upcomingPayments)}
           icon={TrendingUp}
-          sparkline={kpiSparklines.stable}
         />
         <MetricCard
           title="Overdue Payments"
           value={String(stats.overduePayments)}
           icon={AlertTriangle}
-          sparkline={kpiSparklines.decline}
         />
         <MetricCard
           title="Collection Rate"
           value={`${stats.collectionRate}%`}
           icon={TrendingUp}
-          sparkline={kpiSparklines.growth}
         />
       </div>
 

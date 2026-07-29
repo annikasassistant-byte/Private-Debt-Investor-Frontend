@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Payment } from "@/types";
-import { formatCurrencyPrecise, formatDate } from "@/lib/format";
+import { formatCurrency, formatCurrencyPrecise, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -50,7 +50,3 @@ export const paymentColumns: ColumnDef<Payment>[] = [
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
 ];
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-}
