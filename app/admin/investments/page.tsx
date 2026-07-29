@@ -1,14 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { mockInvestments } from "@/mock-data/investments";
 import type { Investment } from "@/types";
 import { DataTable } from "@/components/tables/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useMemo } from "react";
+import { useGetInvestmentsQuery } from "@/services/domainApi";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 
 export default function AdminInvestmentsPage() {
+  const { data: rows = [], isLoading } = useGetInvestmentsQuery();
   const columns: ColumnDef<Investment>[] = useMemo(
     () => [
       { accessorKey: "investorName", header: "Investor" },
@@ -42,13 +44,15 @@ export default function AdminInvestmentsPage() {
     []
   );
 
+  if (isLoading) return <LoadingSkeleton variant="page" />;
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Investments</h1>
-        <p className="text-sm text-muted-foreground">All active and historical allocations.</p>
+        <p className="text-sm text-muted-foreground">All active and historical investment positions.</p>
       </div>
-      <DataTable columns={columns} data={mockInvestments} searchKey="investorName" />
+      <DataTable columns={columns} data={rows} searchKey="investorName" />
     </div>
   );
 }

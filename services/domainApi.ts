@@ -1,0 +1,251 @@
+import { createApi } from "@reduxjs/toolkit/query/react";
+import type {
+  Investor,
+  Investment,
+  Loan,
+  Payment,
+  Report,
+  Contract,
+  TimelineEvent,
+} from "@/types";
+import type { ApiSuccess } from "@/services/types";
+
+// Reuse auth base query with reauth by importing authApi's internal approach —
+// duplicate thin wrapper via fetchBaseQuery from authApi pattern:
+import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import {
+  API_V1,
+  clearTokens,
+  getOrCreateDeviceId,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  persistTokens,
+} from "@/services/config";
+import type { AuthTokensPayload } from "@/services/types";
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: API_V1,
+  credentials: "include",
+  prepareHeaders: (headers) => {
+    const token = getStoredAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    headers.set("Accept", "application/json");
+    headers.set("X-Device-Id", getOrCreateDeviceId());
+    headers.set("X-Device-Name", "Depth Web Client");
+    return headers;
+  },
+});
+
+const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  let result = await rawBaseQuery(args, api, extraOptions);
+  if (result.error && result.error.status === 401) {
+    const refreshToken = getStoredRefreshToken();
+    if (refreshToken) {
+      const refreshResult = await rawBaseQuery(
+        {
+          url: "/auth/refresh",
+          method: "POST",
+          body: { refreshToken, deviceId: getOrCreateDeviceId() },
+        },
+        api,
+        extraOptions
+      );
+      if (refreshResult.data) {
+        const payload = (refreshResult.data as ApiSuccess<Partial<AuthTokensPayload>>).data;
+        if (payload?.accessToken) {
+          persistTokens(payload.accessToken, payload.refreshToken || refreshToken);
+          result = await rawBaseQuery(args, api, extraOptions);
+          return result;
+        }
+      }
+    }
+    clearTokens();
+  }
+  return result;
+};
+
+type ListResult<T> = { data: T[]; meta?: unknown };
+
+function unwrapList<T>(response: ApiSuccess<T[]> | ApiSuccess<ListResult<T>>): T[] {
+  const data = response.data as any;
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+}
+
+export const domainApi = createApi({
+  reducerPath: "domainApi",
+  baseQuery: baseQueryWithReauth,
+  tagTypes: [
+    "Investors",
+    "Investments",
+    "Loans",
+    "Payments",
+    "Reports",
+    "Contracts",
+    "Timeline",
+    "Dashboard",
+  ],
+  endpoints: (builder) => ({
+    getAdminStats: builder.query<Record<string, number>, void>({
+      query: () => "/dashboard/admin",
+      transformResponse: (r: ApiSuccess<Record<string, number>>) => r.data,
+      providesTags: ["Dashboard"],
+    }),
+    getInvestorDashboard: builder.query<
+      { investment: Investment | null; payments: Payment[]; timeline: TimelineEvent[] },
+      void
+    >({
+      query: () => "/dashboard/investor",
+      transformResponse: (r: ApiSuccess<any>) => r.data,
+      providesTags: ["Dashboard", "Investments", "Payments", "Timeline"],
+    }),
+
+    getInvestors: builder.query<Investor[], { search?: string } | void>({
+      query: (params) => ({
+        url: "/investors",
+        params: { limit: 100, ...(params || {}) },
+      }),
+      transformResponse: (r: ApiSuccess<Investor[]>) => unwrapList(r),
+      providesTags: ["Investors"],
+    }),
+    createInvestor: builder.mutation<
+      Investor,
+      {
+        name: string;
+        email: string;
+        password: string;
+        phone?: string;
+        company?: string;
+      }
+    >({
+      query: (body) => ({ url: "/investors", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Investor>) => r.data,
+      invalidatesTags: ["Investors", "Dashboard"],
+    }),
+    updateInvestor: builder.mutation<Investor, { id: string; body: Partial<Investor> }>({
+      query: ({ id, body }) => ({ url: `/investors/${id}`, method: "PATCH", body }),
+      transformResponse: (r: ApiSuccess<Investor>) => r.data,
+      invalidatesTags: ["Investors", "Dashboard"],
+    }),
+    deleteInvestor: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/investors/${id}`, method: "DELETE" }),
+      transformResponse: (r: ApiSuccess<{ success: boolean }>) => r.data,
+      invalidatesTags: ["Investors", "Dashboard"],
+    }),
+
+    getInvestments: builder.query<Investment[], void>({
+      query: () => ({ url: "/investments", params: { limit: 100 } }),
+      transformResponse: (r: ApiSuccess<Investment[]>) => unwrapList(r),
+      providesTags: ["Investments"],
+    }),
+    createInvestment: builder.mutation<Investment, Record<string, unknown>>({
+      query: (body) => ({ url: "/investments", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Investment>) => r.data,
+      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline", "Investors"],
+    }),
+    deleteInvestment: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/investments/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Investments", "Dashboard", "Investors"],
+    }),
+
+    getLoans: builder.query<Loan[], void>({
+      query: () => ({ url: "/loans", params: { limit: 100 } }),
+      transformResponse: (r: ApiSuccess<Loan[]>) => unwrapList(r),
+      providesTags: ["Loans"],
+    }),
+    createLoan: builder.mutation<Loan, Record<string, unknown>>({
+      query: (body) => ({ url: "/loans", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Loan>) => r.data,
+      invalidatesTags: ["Loans"],
+    }),
+
+    getPayments: builder.query<Payment[], { investmentId?: string } | void>({
+      query: (params) => ({
+        url: "/payments",
+        params: { limit: 200, ...(params || {}) },
+      }),
+      transformResponse: (r: ApiSuccess<Payment[]>) => unwrapList(r),
+      providesTags: ["Payments"],
+    }),
+    getInvestmentPayments: builder.query<Payment[], string>({
+      query: (id) => `/investments/${id}/payments`,
+      transformResponse: (r: ApiSuccess<Payment[]>) => (Array.isArray(r.data) ? r.data : []),
+      providesTags: ["Payments"],
+    }),
+    markPaymentPaid: builder.mutation<Payment, { id: string; body?: Record<string, unknown> }>({
+      query: ({ id, body }) => ({
+        url: `/payments/${id}/mark-paid`,
+        method: "POST",
+        body: body || {},
+      }),
+      transformResponse: (r: ApiSuccess<Payment>) => r.data,
+      invalidatesTags: ["Payments", "Investments", "Dashboard", "Timeline"],
+    }),
+
+    getReports: builder.query<Report[], void>({
+      query: () => ({ url: "/reports", params: { limit: 100 } }),
+      transformResponse: (r: ApiSuccess<Report[]>) => unwrapList(r),
+      providesTags: ["Reports"],
+    }),
+    createReport: builder.mutation<Report, FormData>({
+      query: (body) => ({ url: "/reports", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Report>) => r.data,
+      invalidatesTags: ["Reports"],
+    }),
+    deleteReport: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/reports/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Reports"],
+    }),
+
+    getContracts: builder.query<Contract[], void>({
+      query: () => ({ url: "/contracts", params: { limit: 100 } }),
+      transformResponse: (r: ApiSuccess<Contract[]>) => unwrapList(r),
+      providesTags: ["Contracts"],
+    }),
+    createContract: builder.mutation<Contract, FormData>({
+      query: (body) => ({ url: "/contracts", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Contract>) => r.data,
+      invalidatesTags: ["Contracts"],
+    }),
+    deleteContract: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/contracts/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Contracts"],
+    }),
+
+    getTimeline: builder.query<TimelineEvent[], void>({
+      query: () => ({ url: "/timeline", params: { limit: 50 } }),
+      transformResponse: (r: ApiSuccess<TimelineEvent[]>) => unwrapList(r),
+      providesTags: ["Timeline"],
+    }),
+  }),
+});
+
+export const {
+  useGetAdminStatsQuery,
+  useGetInvestorDashboardQuery,
+  useGetInvestorsQuery,
+  useCreateInvestorMutation,
+  useUpdateInvestorMutation,
+  useDeleteInvestorMutation,
+  useGetInvestmentsQuery,
+  useCreateInvestmentMutation,
+  useDeleteInvestmentMutation,
+  useGetLoansQuery,
+  useCreateLoanMutation,
+  useGetPaymentsQuery,
+  useGetInvestmentPaymentsQuery,
+  useMarkPaymentPaidMutation,
+  useGetReportsQuery,
+  useCreateReportMutation,
+  useDeleteReportMutation,
+  useGetContractsQuery,
+  useCreateContractMutation,
+  useDeleteContractMutation,
+  useGetTimelineQuery,
+} = domainApi;

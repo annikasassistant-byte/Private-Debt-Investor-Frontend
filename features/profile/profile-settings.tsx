@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/auth-store";
-import { michaelInvestment } from "@/mock-data/investments";
 import { formatCurrency } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ import {
   useGetProfileQuery,
   useUpdateProfileMutation,
 } from "@/services/authApi";
+import { useGetInvestorDashboardQuery } from "@/services/domainApi";
 import { getApiErrorMessage, mapServerUserToClient } from "@/services/auth-mappers";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 
@@ -26,6 +26,10 @@ export function ProfileSettings() {
   const { data: profile, isLoading, isError } = useGetProfileQuery();
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const { data: investorDash } = useGetInvestorDashboardQuery(undefined, {
+    skip: localUser?.role !== "investor",
+  });
+  const investment = investorDash?.investment;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -116,11 +120,15 @@ export function ProfileSettings() {
           <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <p className="text-muted-foreground">Allocated</p>
-              <p className="font-semibold">{formatCurrency(michaelInvestment.principal)}</p>
+              <p className="font-semibold">
+                {formatCurrency(investment?.principal ?? 0)}
+              </p>
             </div>
             <div>
               <p className="text-muted-foreground">Outstanding</p>
-              <p className="font-semibold">{formatCurrency(michaelInvestment.outstandingBalance)}</p>
+              <p className="font-semibold">
+                {formatCurrency(investment?.outstandingBalance ?? 0)}
+              </p>
             </div>
           </CardContent>
         </Card>

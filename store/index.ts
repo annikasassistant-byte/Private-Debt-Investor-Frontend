@@ -1,13 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { authApi } from "@/services/authApi";
+import { domainApi } from "@/services/domainApi";
 
 export const makeStore = () =>
   configureStore({
     reducer: {
       [authApi.reducerPath]: authApi.reducer,
+      [domainApi.reducerPath]: domainApi.reducer,
     },
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(authApi.middleware),
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(authApi.middleware, domainApi.middleware),
   });
 
 export type AppStore = ReturnType<typeof makeStore>;

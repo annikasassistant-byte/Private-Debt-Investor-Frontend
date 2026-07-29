@@ -12,9 +12,10 @@ interface DocumentCardProps {
   meta: string;
   badge?: string;
   type?: string;
+  href?: string;
 }
 
-export function DocumentCard({ title, meta, badge, type }: DocumentCardProps) {
+export function DocumentCard({ title, meta, badge, type, href }: DocumentCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -52,7 +53,10 @@ export function DocumentCard({ title, meta, badge, type }: DocumentCardProps) {
             variant="outline"
             size="sm"
             className="flex-1 rounded-xl border-border/60"
-            onClick={() => toast.message("Preview opened (demo)")}
+            onClick={() => {
+              if (href) window.open(href, "_blank", "noopener,noreferrer");
+              else toast.message("No file available");
+            }}
           >
             <Eye className="mr-2 h-4 w-4" />
             Preview
@@ -60,7 +64,17 @@ export function DocumentCard({ title, meta, badge, type }: DocumentCardProps) {
           <Button
             size="sm"
             className="flex-1 rounded-xl"
-            onClick={() => toast.success("Download started (demo)")}
+            onClick={() => {
+              if (href) {
+                const a = document.createElement("a");
+                a.href = href;
+                a.download = title;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.click();
+                toast.success("Download started");
+              } else toast.message("No file available");
+            }}
           >
             <Download className="mr-2 h-4 w-4" />
             Download

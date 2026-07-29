@@ -1,56 +1,60 @@
 "use client";
 
-import { michaelInvestment } from "@/mock-data/investments";
+import { useGetInvestorDashboardQuery } from "@/services/domainApi";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { MetricCard } from "@/components/dashboard/metric-card";
-import { Landmark, Percent, Timer } from "lucide-react";
 
-export default function MyInvestmentPage() {
-  const repaidPct = (michaelInvestment.principalRepaid / michaelInvestment.principal) * 100;
+export default function InvestorInvestmentPage() {
+  const { data, isLoading } = useGetInvestorDashboardQuery();
+  if (isLoading) return <LoadingSkeleton variant="page" />;
+  const investment = data?.investment;
+  if (!investment) {
+    return <EmptyState title="No investment" description="No investment is linked to your account." />;
+  }
+
+  const repaidPct = investment.principal
+    ? Math.min(100, Math.round((investment.principalRepaid / investment.principal) * 100))
+    : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">My Investment</h1>
-        <p className="text-sm text-muted-foreground">
-          Detailed view of your €100,000 private debt allocation.
-        </p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard title="Original investment" value={formatCurrency(michaelInvestment.principal)} icon={Landmark} />
-        <MetricCard title="Interest rate" value={`${michaelInvestment.interestRate}%`} icon={Percent} />
-        <MetricCard title="Remaining term" value="17 months" icon={Timer} />
+        <p className="text-sm text-muted-foreground">Details of your private debt allocation.</p>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>Repayment progress</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{formatCurrency(investment.principal)}</CardTitle>
+          <StatusBadge status={investment.status} />
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between text-sm">
-            <span>{formatCurrency(michaelInvestment.principalRepaid)} repaid</span>
-            <span className="text-muted-foreground">{repaidPct.toFixed(1)}%</span>
+        <CardContent className="space-y-6">
+          <div>
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-muted-foreground">Principal repaid</span>
+              <span className="font-medium">{repaidPct}%</span>
+            </div>
+            <Progress value={repaidPct} />
           </div>
-          <Progress value={repaidPct} className="h-2" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">Start date</p>
-              <p className="font-medium">{formatDate(michaelInvestment.startDate)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Maturity</p>
-              <p className="font-medium">{formatDate(michaelInvestment.maturityDate)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Monthly payment</p>
-              <p className="font-medium">{formatCurrency(michaelInvestment.monthlyPayment)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Status</p>
-              <StatusBadge status={michaelInvestment.status} />
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2 text-sm">
+            {[
+              ["Interest rate", `${investment.interestRate}% p.a.`],
+              ["Term", `${investment.termMonths} months`],
+              ["Monthly payment", formatCurrency(investment.monthlyPayment)],
+              ["Outstanding", formatCurrency(investment.outstandingBalance)],
+              ["Interest earned", formatCurrency(investment.interestEarned)],
+              ["Next payment", formatCurrency(investment.nextPaymentAmount)],
+              ["Next due", formatDate(investment.nextPaymentDate)],
+              ["Maturity", formatDate(investment.maturityDate)],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <p className="text-muted-foreground">{k}</p>
+                <p className="font-semibold">{v}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

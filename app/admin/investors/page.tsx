@@ -2,13 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { mockInvestors } from "@/mock-data/investors";
 import type { Investor } from "@/types";
 import { DataTable } from "@/components/tables/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,9 +20,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  useCreateInvestorMutation,
+  useDeleteInvestorMutation,
+  useGetInvestorsQuery,
+} from "@/services/domainApi";
+import { getApiErrorMessage } from "@/services/auth-mappers";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function AdminInvestorsPage() {
-  const [rows, setRows] = useState(mockInvestors);
+  const { data: rows = [], isLoading } = useGetInvestorsQuery();
+  const [createInvestor, { isLoading: creating }] = useCreateInvestorMutation();
+  const [deleteInvestor] = useDeleteInvestorMutation();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    company: "",
+  });
 
   const columns: ColumnDef<Investor>[] = useMemo(
     () => [
@@ -58,16 +75,13 @@ export default function AdminInvestorsPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => toast.message(`Edit ${row.original.name} (demo)`)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setRows((prev) => prev.filter((i) => i.id !== row.original.id));
-                toast.success("Investor removed (demo)");
+              onClick={async () => {
+                try {
+                  await deleteInvestor(row.original.id).unwrap();
+                  toast.success("Investor removed");
+                } catch (error) {
+                  toast.error(getApiErrorMessage(error, "Unable to delete investor"));
+                }
               }}
             >
               <Trash2 className="h-4 w-4 text-destructive" />
@@ -76,8 +90,10 @@ export default function AdminInvestorsPage() {
         ),
       },
     ],
-    []
+    [deleteInvestor]
   );
+
+  if (isLoading) return <LoadingSkeleton variant="page" />;
 
   return (
     <div className="space-y-8">
@@ -86,7 +102,7 @@ export default function AdminInvestorsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Investors</h1>
           <p className="text-sm text-muted-foreground">Manage investor accounts and allocations.</p>
         </div>
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={cn(buttonVariants())}>
             <Plus className="mr-2 h-4 w-4" />
             Create investor
@@ -96,22 +112,55 @@ export default function AdminInvestorsPage() {
               <DialogTitle>Create investor</DialogTitle>
             </DialogHeader>
             <div className="grid gap-3 py-2">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input placeholder="Full name" />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input type="email" placeholder="email@company.com" />
-              </div>
+              {(
+                [
+                  ["name", "Full name"],
+                  ["email", "Email"],
+                  ["password", "Temp password"],
+                  ["phone", "Phone"],
+                  ["company", "Company"],
+                ] as const
+              ).map(([key, label]) => (
+                <div key={key} className="space-y-2">
+                  <Label>{label}</Label>
+                  <Input
+                    type={key === "password" ? "password" : key === "email" ? "email" : "text"}
+                    value={form[key]}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
             </div>
             <DialogFooter>
-              <Button onClick={() => toast.success("Investor created (demo)")}>Save</Button>
+              <Button
+                disabled={creating}
+                onClick={async () => {
+                  try {
+                    await createInvestor(form).unwrap();
+                    toast.success("Investor created");
+                    setOpen(false);
+                    setForm({ name: "", email: "", password: "", phone: "", company: "" });
+                  } catch (error) {
+                    toast.error(getApiErrorMessage(error, "Unable to create investor"));
+                  }
+                }}
+              >
+                {creating ? "Saving…" : "Save"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-      <DataTable columns={columns} data={rows} searchKey="name" searchPlaceholder="Search investors..." />
+      {rows.length === 0 ? (
+        <EmptyState title="No investors yet" description="Create the first investor to get started." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={rows}
+          searchKey="name"
+          searchPlaceholder="Search investors..."
+        />
+      )}
     </div>
   );
 }

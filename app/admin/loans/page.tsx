@@ -1,16 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { mockLoans } from "@/mock-data/loans";
 import type { Loan } from "@/types";
 import { DataTable } from "@/components/tables/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
-import { toast } from "sonner";
+import { useGetLoansQuery } from "@/services/domainApi";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 
 export default function AdminLoansPage() {
+  const { data: rows = [], isLoading } = useGetLoansQuery();
   const columns: ColumnDef<Loan>[] = useMemo(
     () => [
       { accessorKey: "borrower", header: "Borrower" },
@@ -34,30 +34,19 @@ export default function AdminLoansPage() {
         header: "Funded",
         cell: ({ row }) => formatDate(row.original.fundedAt),
       },
-      {
-        id: "details",
-        header: "",
-        cell: ({ row }) => (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toast.message(`Loan ${row.original.id} details (demo)`)}
-          >
-            Details
-          </Button>
-        ),
-      },
     ],
     []
   );
+
+  if (isLoading) return <LoadingSkeleton variant="page" />;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Loans</h1>
-        <p className="text-sm text-muted-foreground">Underlying borrower facilities.</p>
+        <p className="text-sm text-muted-foreground">Underlying loan facilities linked to investments.</p>
       </div>
-      <DataTable columns={columns} data={mockLoans} searchKey="borrower" />
+      <DataTable columns={columns} data={rows} searchKey="borrower" />
     </div>
   );
 }

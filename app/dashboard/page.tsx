@@ -18,11 +18,11 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { principalVsInterestData, outstandingBalanceData } from "@/mock-data/analytics";
 import { Timeline } from "@/components/timeline/timeline";
 import { SectionHeader } from "@/components/shared/section-header";
 import { PageHeader } from "@/components/shared/page-header";
 import { kpiSparklines } from "@/lib/sparkline-presets";
+import { EmptyState } from "@/components/shared/empty-state";
 
 
 
@@ -35,8 +35,32 @@ export default function InvestorDashboardPage() {
 
   if (isLoading || !data) return <LoadingSkeleton variant="page" />;
 
-  const { investment, payments, timeline } = data;
+  const { investment, payments = [], timeline = [] } = data;
+
+  if (!investment) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          hero
+          eyebrow="Portfolio"
+          title="Your investment at a glance"
+          description="Overview of your private debt allocation, cash flows, and upcoming obligations."
+        />
+        <EmptyState
+          title="No investment yet"
+          description="Your administrator has not assigned an investment to your account."
+        />
+      </div>
+    );
+  }
+
   const recent = [...payments].reverse().slice(0, 5);
+  const chartPayments = payments.slice(-12).map((p) => ({
+    month: p.dueDate.slice(0, 7),
+    principal: p.principal,
+    interest: p.interest,
+    value: p.remainingBalance,
+  }));
 
   return (
     <div className="space-y-10">
@@ -106,7 +130,7 @@ export default function InvestorDashboardPage() {
         </Card>
         <div className="lg:col-span-2">
           <ChartCard title="Outstanding balance" description="Amortization trend over time">
-            <BalanceLineChart data={outstandingBalanceData} />
+            <BalanceLineChart data={chartPayments} />
           </ChartCard>
         </div>
       </div>
@@ -116,7 +140,7 @@ export default function InvestorDashboardPage() {
         description="Monthly repayment composition"
         delay={0.1}
       >
-        <PrincipalInterestChart data={principalVsInterestData} />
+        <PrincipalInterestChart data={chartPayments} />
       </ChartCard>
 
       <div className="grid gap-5 lg:grid-cols-2">
