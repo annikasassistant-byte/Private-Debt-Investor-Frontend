@@ -17,7 +17,9 @@ export type PaymentStatus =
   | "upcoming"
   | "scheduled"
   | "overdue"
-  | "future";
+  | "future"
+  | "partially_paid"
+  | "cancelled";
 
 export type InvestmentStatus = "active" | "matured" | "closed" | "pending";
 
@@ -49,11 +51,16 @@ export interface Investment {
   maturityDate: string;
   nextPaymentDate: string;
   nextPaymentAmount: number;
+  paymentDay?: number;
+  repaymentModel?: string;
+  gracePeriodMonths?: number;
+  balloonAmount?: number;
 }
 
 export interface Loan {
   id: string;
   investmentId: string;
+  investorId?: string;
   borrower: string;
   amount: number;
   rate: number;
@@ -65,12 +72,14 @@ export interface Payment {
   id: string;
   investmentId: string;
   investorId: string;
+  sequence?: number;
   dueDate: string;
   paymentDate: string | null;
   principal: number;
   interest: number;
   total: number;
   remainingBalance: number;
+  amountPaid?: number;
   status: PaymentStatus;
 }
 
@@ -108,7 +117,10 @@ export interface Report {
   period: string;
   uploadedAt: string;
   size: string;
+  fileUrl?: string;
+  fileName?: string;
   investorId?: string;
+  assignedInvestors?: string[];
 }
 
 export type ContractType =
@@ -123,7 +135,10 @@ export interface Contract {
   type: ContractType;
   signedAt: string;
   size: string;
+  fileUrl?: string;
+  fileName?: string;
   investorId?: string;
+  assignedInvestors?: string[];
 }
 
 export interface Notification {

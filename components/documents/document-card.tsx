@@ -1,21 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileText, Download, Eye } from "lucide-react";
+import { FileText, Download, Eye, Trash2 } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  downloadAuthenticatedFile,
+  previewAuthenticatedFile,
+} from "@/lib/download";
 
 interface DocumentCardProps {
   title: string;
   meta: string;
   badge?: string;
   type?: string;
-  href?: string;
+  /** Authenticated API path e.g. `/reports/:id/download` */
+  downloadPath?: string;
+  onDelete?: () => void | Promise<void>;
 }
 
-export function DocumentCard({ title, meta, badge, type, href }: DocumentCardProps) {
+export function DocumentCard({
+  title,
+  meta,
+  badge,
+  type,
+  downloadPath,
+  onDelete,
+}: DocumentCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -53,9 +66,16 @@ export function DocumentCard({ title, meta, badge, type, href }: DocumentCardPro
             variant="outline"
             size="sm"
             className="flex-1 rounded-xl border-border/60"
-            onClick={() => {
-              if (href) window.open(href, "_blank", "noopener,noreferrer");
-              else toast.message("No file available");
+            onClick={async () => {
+              if (!downloadPath) {
+                toast.message("No file available");
+                return;
+              }
+              try {
+                await previewAuthenticatedFile(downloadPath);
+              } catch {
+                toast.error("Unable to preview file");
+              }
             }}
           >
             <Eye className="mr-2 h-4 w-4" />
@@ -64,21 +84,38 @@ export function DocumentCard({ title, meta, badge, type, href }: DocumentCardPro
           <Button
             size="sm"
             className="flex-1 rounded-xl"
-            onClick={() => {
-              if (href) {
-                const a = document.createElement("a");
-                a.href = href;
-                a.download = title;
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                a.click();
+            onClick={async () => {
+              if (!downloadPath) {
+                toast.message("No file available");
+                return;
+              }
+              try {
+                await downloadAuthenticatedFile(downloadPath, title);
                 toast.success("Download started");
-              } else toast.message("No file available");
+              } catch {
+                toast.error("Download failed");
+              }
             }}
           >
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-xl text-destructive"
+              onClick={async () => {
+                try {
+                  await onDelete();
+                } catch {
+                  toast.error("Delete failed");
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </motion.div>

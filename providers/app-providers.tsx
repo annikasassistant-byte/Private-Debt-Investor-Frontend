@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { useState } from "react";
 import { ReduxProvider } from "@/store/redux-provider";
+import { RealtimeProvider } from "@/providers/realtime-provider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -25,8 +26,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            {children}
-            <Toaster richColors position="top-right" />
+            <RealtimeProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </RealtimeProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

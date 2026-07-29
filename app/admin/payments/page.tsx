@@ -1,21 +1,124 @@
 "use client";
 
+import { useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Payment } from "@/types";
 import { DataTable } from "@/components/tables/data-table";
-import { paymentColumns } from "@/features/payments/payment-columns";
+import { formatCurrencyPrecise, formatDate } from "@/lib/format";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
+  useCancelPaymentMutation,
+  useGetInvestmentsQuery,
   useGetPaymentsQuery,
   useMarkPaymentPaidMutation,
 } from "@/services/domainApi";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { getApiErrorMessage } from "@/services/auth-mappers";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function AdminPaymentsPage() {
-  const { data: rows = [], isLoading } = useGetPaymentsQuery();
+  const { data: rows = [], isLoading, isError, refetch } = useGetPaymentsQuery();
+  const { data: investments = [] } = useGetInvestmentsQuery();
   const [markPaid, { isLoading: marking }] = useMarkPaymentPaidMutation();
+  const [cancelPayment] = useCancelPaymentMutation();
+
+  const columns: ColumnDef<Payment>[] = useMemo(
+    () => [
+      {
+        accessorKey: "dueDate",
+        header: "Due Date",
+        cell: ({ row }) => formatDate(row.original.dueDate),
+      },
+      {
+        accessorKey: "paymentDate",
+        header: "Payment Date",
+        cell: ({ row }) =>
+          row.original.paymentDate ? formatDate(row.original.paymentDate) : "—",
+      },
+      {
+        accessorKey: "principal",
+        header: "Principal",
+        cell: ({ row }) => formatCurrencyPrecise(row.original.principal),
+      },
+      {
+        accessorKey: "interest",
+        header: "Interest",
+        cell: ({ row }) => formatCurrencyPrecise(row.original.interest),
+      },
+      {
+        accessorKey: "total",
+        header: "Total",
+        cell: ({ row }) => formatCurrencyPrecise(row.original.total),
+      },
+      {
+        accessorKey: "remainingBalance",
+        header: "Balance",
+        cell: ({ row }) => formatCurrencyPrecise(row.original.remainingBalance),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => {
+          const p = row.original;
+          const canPay = !["completed", "cancelled"].includes(p.status);
+          if (!canPay) return null;
+          return (
+            <div className="flex justify-end gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={marking}
+                onClick={async () => {
+                  try {
+                    await markPaid({ id: p.id }).unwrap();
+                    toast.success("Payment confirmed");
+                  } catch (error) {
+                    toast.error(getApiErrorMessage(error, "Unable to confirm"));
+                  }
+                }}
+              >
+                Mark paid
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  try {
+                    await cancelPayment({ id: p.id }).unwrap();
+                    toast.success("Payment cancelled");
+                  } catch (error) {
+                    toast.error(getApiErrorMessage(error, "Unable to cancel"));
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          );
+        },
+      },
+    ],
+    [markPaid, cancelPayment, marking]
+  );
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
+  if (isError) {
+    return (
+      <EmptyState
+        title="Unable to load payments"
+        description="Check your connection and try again."
+        actionLabel="Retry"
+        onAction={() => refetch()}
+      />
+    );
+  }
 
   const upcoming = rows.find((p) => p.status === "upcoming" || p.status === "overdue");
 
@@ -41,7 +144,16 @@ export default function AdminPaymentsPage() {
           {marking ? "Confirming…" : "Confirm next payment"}
         </Button>
       </div>
-      <DataTable columns={paymentColumns} data={rows} searchKey="status" />
+      {rows.length === 0 ? (
+        <EmptyState title="No payments" description="Create an investment to generate a schedule." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={rows}
+          searchKey="status"
+          exportInvestmentId={investments[0]?.id || rows[0]?.investmentId}
+        />
+      )}
     </div>
   );
 }

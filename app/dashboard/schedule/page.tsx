@@ -2,20 +2,30 @@
 
 import { DataTable } from "@/components/tables/data-table";
 import { paymentColumns } from "@/features/payments/payment-columns";
-import { useGetPaymentsQuery } from "@/services/domainApi";
+import { useGetInvestmentsQuery, useGetPaymentsQuery } from "@/services/domainApi";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Button } from "@/components/ui/button";
-import { API_V1, getStoredAccessToken } from "@/services/config";
-import { useGetInvestmentsQuery } from "@/services/domainApi";
+import { EmptyState } from "@/components/shared/empty-state";
+import { exportPaymentsFile } from "@/lib/download";
 import { toast } from "sonner";
 
 export default function InvestorSchedulePage() {
-  const { data: payments = [], isLoading } = useGetPaymentsQuery();
+  const { data: payments = [], isLoading, isError, refetch } = useGetPaymentsQuery();
   const { data: investments = [] } = useGetInvestmentsQuery();
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
+  if (isError) {
+    return (
+      <EmptyState
+        title="Unable to load schedule"
+        description="Check your connection and try again."
+        actionLabel="Retry"
+        onAction={() => refetch()}
+      />
+    );
+  }
 
-  const investmentId = investments[0]?.id;
+  const investmentId = investments[0]?.id || payments[0]?.investmentId;
 
   return (
     <div className="space-y-8">
@@ -33,22 +43,7 @@ export default function InvestorSchedulePage() {
               onClick={async () => {
                 if (!investmentId) return;
                 try {
-                  const res = await fetch(
-                    `${API_V1}/exports/payments/${investmentId}?format=${format}`,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${getStoredAccessToken() || ""}`,
-                      },
-                    }
-                  );
-                  if (!res.ok) throw new Error("Export failed");
-                  const blob = await res.blob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `payments.${format}`;
-                  a.click();
-                  URL.revokeObjectURL(url);
+                  await exportPaymentsFile(investmentId, format);
                   toast.success(`${format.toUpperCase()} downloaded`);
                 } catch {
                   toast.error("Export failed");
@@ -60,7 +55,17 @@ export default function InvestorSchedulePage() {
           ))}
         </div>
       </div>
-      <DataTable columns={paymentColumns} data={payments} searchKey="status" />
+      {payments.length === 0 ? (
+        <EmptyState title="No payments yet" description="Your repayment schedule will appear here." />
+      ) : (
+        <DataTable
+          columns={paymentColumns}
+          data={payments}
+          searchKey="status"
+          showExport={false}
+          exportInvestmentId={investmentId}
+        />
+      )}
     </div>
   );
 }

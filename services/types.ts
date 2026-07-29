@@ -32,6 +32,12 @@ export interface ServerUser {
   role?: ServerRole | string;
   emailVerified?: boolean;
   isActive?: boolean;
+  notificationPreferences?: {
+    paymentConfirmations?: boolean;
+    upcomingDueDates?: boolean;
+    newReports?: boolean;
+    platformAnnouncements?: boolean;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

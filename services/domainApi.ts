@@ -1,4 +1,5 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import type {
   Investor,
   Investment,
@@ -8,12 +9,7 @@ import type {
   Contract,
   TimelineEvent,
 } from "@/types";
-import type { ApiSuccess } from "@/services/types";
-
-// Reuse auth base query with reauth by importing authApi's internal approach —
-// duplicate thin wrapper via fetchBaseQuery from authApi pattern:
-import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type { ApiSuccess, AuthTokensPayload } from "@/services/types";
 import {
   API_V1,
   clearTokens,
@@ -22,7 +18,6 @@ import {
   getStoredRefreshToken,
   persistTokens,
 } from "@/services/config";
-import type { AuthTokensPayload } from "@/services/types";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_V1,
@@ -98,7 +93,13 @@ export const domainApi = createApi({
       providesTags: ["Dashboard"],
     }),
     getInvestorDashboard: builder.query<
-      { investment: Investment | null; payments: Payment[]; timeline: TimelineEvent[] },
+      {
+        investment: Investment | null;
+        investments?: Investment[];
+        payments: Payment[];
+        timeline: TimelineEvent[];
+        stats?: Record<string, unknown> | null;
+      },
       void
     >({
       query: () => "/dashboard/investor",
@@ -147,11 +148,32 @@ export const domainApi = createApi({
     createInvestment: builder.mutation<Investment, Record<string, unknown>>({
       query: (body) => ({ url: "/investments", method: "POST", body }),
       transformResponse: (r: ApiSuccess<Investment>) => r.data,
-      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline", "Investors"],
+      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline", "Investors", "Loans"],
+    }),
+    updateInvestment: builder.mutation<Investment, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/investments/${id}`, method: "PATCH", body }),
+      transformResponse: (r: ApiSuccess<Investment>) => r.data,
+      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline"],
     }),
     deleteInvestment: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/investments/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Investments", "Dashboard", "Investors"],
+      invalidatesTags: ["Investments", "Dashboard", "Investors", "Payments", "Loans"],
+    }),
+    regenerateSchedule: builder.mutation<{ data?: Payment[] }, string>({
+      query: (id) => ({ url: `/investments/${id}/regenerate-schedule`, method: "POST" }),
+      invalidatesTags: ["Payments", "Investments", "Timeline"],
+    }),
+    earlyRepayment: builder.mutation<
+      Investment,
+      { id: string; body: { amount: number; interestPortion?: number; notes?: string } }
+    >({
+      query: ({ id, body }) => ({
+        url: `/investments/${id}/early-repayment`,
+        method: "POST",
+        body,
+      }),
+      transformResponse: (r: ApiSuccess<Investment>) => r.data,
+      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline"],
     }),
 
     getLoans: builder.query<Loan[], void>({
@@ -162,6 +184,15 @@ export const domainApi = createApi({
     createLoan: builder.mutation<Loan, Record<string, unknown>>({
       query: (body) => ({ url: "/loans", method: "POST", body }),
       transformResponse: (r: ApiSuccess<Loan>) => r.data,
+      invalidatesTags: ["Loans", "Timeline"],
+    }),
+    updateLoan: builder.mutation<Loan, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/loans/${id}`, method: "PATCH", body }),
+      transformResponse: (r: ApiSuccess<Loan>) => r.data,
+      invalidatesTags: ["Loans"],
+    }),
+    deleteLoan: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/loans/${id}`, method: "DELETE" }),
       invalidatesTags: ["Loans"],
     }),
 
@@ -187,6 +218,15 @@ export const domainApi = createApi({
       transformResponse: (r: ApiSuccess<Payment>) => r.data,
       invalidatesTags: ["Payments", "Investments", "Dashboard", "Timeline"],
     }),
+    cancelPayment: builder.mutation<Payment, { id: string; body?: Record<string, unknown> }>({
+      query: ({ id, body }) => ({
+        url: `/payments/${id}/cancel`,
+        method: "POST",
+        body: body || {},
+      }),
+      transformResponse: (r: ApiSuccess<Payment>) => r.data,
+      invalidatesTags: ["Payments", "Investments", "Dashboard"],
+    }),
 
     getReports: builder.query<Report[], void>({
       query: () => ({ url: "/reports", params: { limit: 100 } }),
@@ -195,6 +235,11 @@ export const domainApi = createApi({
     }),
     createReport: builder.mutation<Report, FormData>({
       query: (body) => ({ url: "/reports", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Report>) => r.data,
+      invalidatesTags: ["Reports"],
+    }),
+    updateReport: builder.mutation<Report, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/reports/${id}`, method: "PATCH", body }),
       transformResponse: (r: ApiSuccess<Report>) => r.data,
       invalidatesTags: ["Reports"],
     }),
@@ -210,6 +255,11 @@ export const domainApi = createApi({
     }),
     createContract: builder.mutation<Contract, FormData>({
       query: (body) => ({ url: "/contracts", method: "POST", body }),
+      transformResponse: (r: ApiSuccess<Contract>) => r.data,
+      invalidatesTags: ["Contracts"],
+    }),
+    updateContract: builder.mutation<Contract, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/contracts/${id}`, method: "PATCH", body }),
       transformResponse: (r: ApiSuccess<Contract>) => r.data,
       invalidatesTags: ["Contracts"],
     }),
@@ -235,17 +285,25 @@ export const {
   useDeleteInvestorMutation,
   useGetInvestmentsQuery,
   useCreateInvestmentMutation,
+  useUpdateInvestmentMutation,
   useDeleteInvestmentMutation,
+  useRegenerateScheduleMutation,
+  useEarlyRepaymentMutation,
   useGetLoansQuery,
   useCreateLoanMutation,
+  useUpdateLoanMutation,
+  useDeleteLoanMutation,
   useGetPaymentsQuery,
   useGetInvestmentPaymentsQuery,
   useMarkPaymentPaidMutation,
+  useCancelPaymentMutation,
   useGetReportsQuery,
   useCreateReportMutation,
+  useUpdateReportMutation,
   useDeleteReportMutation,
   useGetContractsQuery,
   useCreateContractMutation,
+  useUpdateContractMutation,
   useDeleteContractMutation,
   useGetTimelineQuery,
 } = domainApi;

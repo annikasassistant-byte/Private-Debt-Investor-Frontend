@@ -148,9 +148,37 @@ export const authApi = createApi({
 
     updateProfile: builder.mutation<
       ServerUser,
-      { firstName?: string; lastName?: string; phone?: string | null }
+      {
+        firstName?: string;
+        lastName?: string;
+        phone?: string | null;
+        notificationPreferences?: {
+          paymentConfirmations?: boolean;
+          upcomingDueDates?: boolean;
+          newReports?: boolean;
+          platformAnnouncements?: boolean;
+        };
+      }
     >({
       query: (body) => ({ url: "/users/me", method: "PATCH", body }),
+      transformResponse: (response: ApiSuccess<ServerUser>) => response.data,
+      invalidatesTags: ["Profile"],
+    }),
+
+    updateNotificationPreferences: builder.mutation<
+      ServerUser,
+      {
+        paymentConfirmations?: boolean;
+        upcomingDueDates?: boolean;
+        newReports?: boolean;
+        platformAnnouncements?: boolean;
+      }
+    >({
+      query: (body) => ({
+        url: "/users/me/notification-preferences",
+        method: "PATCH",
+        body,
+      }),
       transformResponse: (response: ApiSuccess<ServerUser>) => response.data,
       invalidatesTags: ["Profile"],
     }),
@@ -168,4 +196,5 @@ export const {
   useGetProfileQuery,
   useLazyGetProfileQuery,
   useUpdateProfileMutation,
+  useUpdateNotificationPreferencesMutation,
 } = authApi;

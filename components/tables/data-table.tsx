@@ -40,6 +40,10 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   showExport?: boolean;
+  /** Optional investment id for authenticated CSV/PDF export via API */
+  exportInvestmentId?: string;
+  onExportCsv?: () => void | Promise<void>;
+  onExportPdf?: () => void | Promise<void>;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +52,9 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder,
   showExport = true,
+  exportInvestmentId,
+  onExportCsv,
+  onExportPdf,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -78,6 +85,61 @@ export function DataTable<TData, TValue>({
 
   const hasRows = table.getRowModel().rows.length > 0;
 
+  const handleExport = async (format: "csv" | "pdf") => {
+    try {
+      if (format === "csv" && onExportCsv) {
+        await onExportCsv();
+        return;
+      }
+      if (format === "pdf" && onExportPdf) {
+        await onExportPdf();
+        return;
+      }
+      if (exportInvestmentId) {
+        const { exportPaymentsFile } = await import("@/lib/download");
+        await exportPaymentsFile(exportInvestmentId, format);
+        toast.success(`${format.toUpperCase()} downloaded`);
+        return;
+      }
+      // Client-side CSV fallback from visible rows
+      if (format === "csv") {
+        const rows = table.getFilteredRowModel().rows;
+        if (!rows.length) {
+          toast.message("Nothing to export");
+          return;
+        }
+        const keys = table
+          .getAllColumns()
+          .filter((c) => c.getIsVisible() && c.id !== "actions")
+          .map((c) => c.id);
+        const header = keys.join(",");
+        const body = rows
+          .map((row) =>
+            keys
+              .map((k) => {
+                const val = row.getValue(k);
+                const s = String(val ?? "");
+                return s.includes(",") ? `"${s.replace(/"/g, '""')}"` : s;
+              })
+              .join(",")
+          )
+          .join("\n");
+        const blob = new Blob([`${header}\n${body}`], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("CSV downloaded");
+        return;
+      }
+      toast.message("Select an investment schedule to export PDF");
+    } catch {
+      toast.error("Export failed");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div
@@ -99,7 +161,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="sm"
                 className="rounded-xl border-border/60 bg-background/80"
-                onClick={() => toast.success("CSV export started (demo)")}
+                onClick={() => handleExport("csv")}
               >
                 <FileDown className="mr-2 h-4 w-4" />
                 CSV
@@ -108,7 +170,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="sm"
                 className="rounded-xl border-border/60 bg-background/80"
-                onClick={() => toast.success("PDF export started (demo)")}
+                onClick={() => handleExport("pdf")}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 PDF
