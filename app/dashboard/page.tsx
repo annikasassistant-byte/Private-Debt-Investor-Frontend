@@ -24,6 +24,12 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { PageHeader } from "@/components/shared/page-header";
 import { kpiSparklines } from "@/lib/sparkline-presets";
 
+
+
+
+
+
+
 export default function InvestorDashboardPage() {
   const { data, isLoading } = useInvestorDashboard();
 
