@@ -81,7 +81,7 @@ export function PrincipalInterestChart({ data }: { data: ChartPoint[] }) {
         <Tooltip content={tooltipContent} cursor={tooltipCursor} />
         <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
         <Bar dataKey="principal" name="Principal" fill={chartColors.secondary} radius={[6, 6, 0, 0]} animationDuration={700} />
-        <Bar dataKey="interest" name="Interest" fill={chartColors.tertiary} radius={[6, 6, 0, 0]} animationDuration={700} />
+        <Bar dataKey="interest" name="Financing Fee" fill={chartColors.tertiary} radius={[6, 6, 0, 0]} animationDuration={700} />
       </BarChart>
     </ResponsiveContainer>
   );

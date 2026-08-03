@@ -48,7 +48,7 @@ export const paymentColumns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "interest",
-    header: "Interest",
+    header: "Financing Fee",
     cell: ({ row }) => formatCurrencyPrecise(row.original.interest),
   },
   {

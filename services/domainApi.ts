@@ -45,7 +45,21 @@ export const domainApi = createApi({
         investments?: Investment[];
         payments: Payment[];
         timeline: TimelineEvent[];
-        stats?: Record<string, unknown> | null;
+        stats?: {
+          investmentAmount?: number;
+          outstandingBalance?: number;
+          principalRepaid?: number;
+          interestEarned?: number;
+          nextPaymentDate?: string | null;
+          nextPaymentAmount?: number;
+          maturityDate?: string | null;
+          status?: string | null;
+          repaymentCount?: number;
+          overdueCount?: number;
+          upcomingPaymentCount?: number;
+          returnedAmount?: number;
+          investmentCount?: number;
+        } | null;
       },
       void
     >({

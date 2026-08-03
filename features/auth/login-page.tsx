@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, Layers, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,8 @@ export function LoginPage() {
   const setSession = useAuthStore((s) => s.setSession);
   const [login, { isLoading }] = useLoginMutation();
   const [mounted, setMounted] = useState(false);
+  /** Keep overlay through navigation — avoids AnimatePresence exit vs router unmount race. */
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -79,6 +81,8 @@ export function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
+  const busy = isLoading || navigating;
+
   const onSubmit = async (values: FormValues) => {
     try {
       const data = await login(values).unwrap();
@@ -89,13 +93,22 @@ export function LoginPage() {
       });
       const mapped = useAuthStore.getState().user;
       const redirect = searchParams.get("redirect");
-      if (redirect && redirect.startsWith("/")) {
-        router.push(redirect);
-      } else if (mapped) {
-        router.push(getRedirectForRole(mapped.role));
-      }
+      const target =
+        redirect && redirect.startsWith("/")
+          ? redirect
+          : mapped
+            ? getRedirectForRole(mapped.role)
+            : null;
+
+      setNavigating(true);
       toast.success("Welcome back");
+      if (target) {
+        router.replace(target);
+      } else {
+        setNavigating(false);
+      }
     } catch (error) {
+      setNavigating(false);
       toast.error(getApiErrorMessage(error, "Invalid email or password"));
     }
   };
@@ -115,35 +128,22 @@ export function LoginPage() {
         <div className="absolute bottom-0 right-0 h-[24rem] w-[24rem] rounded-full bg-chart-2/15 blur-3xl" />
       </div>
 
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div
-            key="login-loader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/55 backdrop-blur-md"
-            role="status"
-            aria-live="polite"
-            aria-busy="true"
-            aria-label="Signing in"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="glass-panel-strong mx-4 flex w-full max-w-xs flex-col items-center rounded-2xl px-8 py-10 shadow-xl shadow-primary/10"
-            >
-              <BrandedLoader className="min-h-0 gap-5" />
-              <p className="mt-1 text-center text-sm text-muted-foreground">
-                Signing you in securely…
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {busy && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/55 backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Signing in"
+        >
+          <div className="glass-panel-strong mx-4 flex w-full max-w-xs flex-col items-center rounded-2xl px-8 py-10 shadow-xl shadow-primary/10">
+            <BrandedLoader className="min-h-0 gap-5" />
+            <p className="mt-1 text-center text-sm text-muted-foreground">
+              Signing you in securely…
+            </p>
+          </div>
+        </div>
+      )}
 
       <motion.section
         initial={{ opacity: 0, x: -20 }}
@@ -201,7 +201,7 @@ export function LoginPage() {
                   type="email"
                   autoComplete="email"
                   className="h-11 rounded-xl border-border/60 bg-background/60"
-                  disabled={isLoading}
+                  disabled={busy}
                   {...register("email")}
                 />
               </Field>
@@ -211,15 +211,15 @@ export function LoginPage() {
                     id="password"
                     autoComplete="current-password"
                     className="h-11 rounded-xl border-border/60 bg-background/60"
-                    disabled={isLoading}
+                    disabled={busy}
                     {...register("password")}
                   />
                   <div className="flex justify-end">
                     <Link
                       href="/forgot-password"
                       className="text-xs font-medium text-primary hover:underline"
-                      tabIndex={isLoading ? -1 : undefined}
-                      aria-disabled={isLoading}
+                      tabIndex={busy ? -1 : undefined}
+                      aria-disabled={busy}
                     >
                       Forgot password?
                     </Link>
@@ -229,9 +229,9 @@ export function LoginPage() {
               <Button
                 type="submit"
                 className="h-11 w-full rounded-xl text-base font-medium shadow-lg shadow-primary/20"
-                disabled={isLoading}
+                disabled={busy}
               >
-                {isLoading ? (
+                {busy ? (
                   <span className="inline-flex items-center gap-2">
                     <span className="relative flex h-4 w-4 items-center justify-center">
                       <span className="absolute inset-0 rounded-full border-2 border-primary-foreground/25" />

@@ -39,6 +39,7 @@ import {
 import { getApiErrorMessage } from "@/services/auth-mappers";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { formatRepaymentModel, REPAYMENT_MODEL_OPTIONS } from "@/lib/repayment";
 
 const emptyForm = {
   investorId: "",
@@ -85,8 +86,13 @@ export default function AdminInvestmentsPage() {
       },
       {
         accessorKey: "interestRate",
-        header: "Rate",
+        header: "Financing Fee",
         cell: ({ row }) => `${row.original.interestRate}%`,
+      },
+      {
+        accessorKey: "repaymentModel",
+        header: "Model",
+        cell: ({ row }) => formatRepaymentModel(row.original.repaymentModel),
       },
       { accessorKey: "termMonths", header: "Term (mo)" },
       {
@@ -234,9 +240,9 @@ export default function AdminInvestmentsPage() {
               {(
                 [
                   ["principal", "Principal"],
-                  ["interestRate", "Interest rate (%)"],
+                  ["interestRate", "Financing Fee (%)"],
                   ["termMonths", "Term (months)"],
-                  ["paymentDay", "Payment day (1–28)"],
+                  ["paymentDay", "Payment day (1–31)"],
                   ["startDate", "Start date"],
                   ["borrower", "Borrower (optional — creates loan)"],
                 ] as const
@@ -262,9 +268,11 @@ export default function AdminInvestmentsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="amortizing">Amortizing</SelectItem>
-                    <SelectItem value="interest_only">Interest only</SelectItem>
-                    <SelectItem value="bullet">Bullet</SelectItem>
+                    {REPAYMENT_MODEL_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -308,9 +316,9 @@ export default function AdminInvestmentsPage() {
             {(
               [
                 ["principal", "Principal"],
-                ["interestRate", "Interest rate (%)"],
+                ["interestRate", "Financing Fee (%)"],
                 ["termMonths", "Term (months)"],
-                ["paymentDay", "Payment day"],
+                ["paymentDay", "Payment day (1–31)"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="space-y-2">
@@ -334,9 +342,11 @@ export default function AdminInvestmentsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="amortizing">Amortizing</SelectItem>
-                  <SelectItem value="interest_only">Interest only</SelectItem>
-                  <SelectItem value="bullet">Bullet</SelectItem>
+                  {REPAYMENT_MODEL_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -411,7 +421,7 @@ export default function AdminInvestmentsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Interest portion (optional)</Label>
+              <Label>Financing Fee portion (optional)</Label>
               <Input
                 type="number"
                 value={earlyForm.interestPortion}

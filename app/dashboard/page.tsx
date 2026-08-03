@@ -23,6 +23,8 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { deriveInvestmentDisplayStatus } from "@/lib/investment-status";
+import { formatRepaymentModel } from "@/lib/repayment";
+import type { Investment } from "@/types";
 
 export default function InvestorDashboardPage() {
   const { data, isLoading, isError, refetch } = useGetInvestorDashboardQuery();
@@ -39,9 +41,14 @@ export default function InvestorDashboardPage() {
     );
   }
 
-  const { investment, payments = [], timeline = [] } = data;
+  const investments = (data.investments?.length
+    ? data.investments
+    : data.investment
+      ? [data.investment]
+      : []) as Investment[];
+  const { payments = [], timeline = [], stats } = data;
 
-  if (!investment) {
+  if (investments.length === 0) {
     return (
       <div className="space-y-8">
         <PageHeader
@@ -58,8 +65,21 @@ export default function InvestorDashboardPage() {
     );
   }
 
-  const displayStatus = deriveInvestmentDisplayStatus(investment, payments);
-  const totalRepaid = (investment.principalRepaid || 0) + (investment.interestEarned || 0);
+  const investmentAmount =
+    stats?.investmentAmount ?? investments.reduce((s, inv) => s + (inv.principal || 0), 0);
+  const outstandingBalance =
+    stats?.outstandingBalance ??
+    investments.reduce((s, inv) => s + (inv.outstandingBalance || 0), 0);
+  const interestEarned =
+    stats?.interestEarned ?? investments.reduce((s, inv) => s + (inv.interestEarned || 0), 0);
+  const principalRepaid =
+    stats?.principalRepaid ?? investments.reduce((s, inv) => s + (inv.principalRepaid || 0), 0);
+  const totalRepaid =
+    stats?.returnedAmount ?? principalRepaid + interestEarned;
+  const nextPaymentAmount = stats?.nextPaymentAmount ?? 0;
+  const nextPaymentDate = stats?.nextPaymentDate ?? null;
+  const maturityDate = stats?.maturityDate ?? investments[0]?.maturityDate;
+
   const recent = [...payments].reverse().slice(0, 5);
   const chartPayments = payments.slice(-12).map((p) => ({
     month: p.dueDate.slice(0, 7),
@@ -80,25 +100,25 @@ export default function InvestorDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <MetricCard
           title="Investment Amount"
-          value={formatCurrency(investment.principal)}
+          value={formatCurrency(investmentAmount)}
           icon={Wallet}
           delay={0}
         />
         <MetricCard
           title="Outstanding Balance"
-          value={formatCurrency(investment.outstandingBalance)}
+          value={formatCurrency(outstandingBalance)}
           icon={CircleDollarSign}
           delay={0.05}
         />
         <MetricCard
-          title="Interest Earned"
-          value={formatCurrency(investment.interestEarned)}
+          title="Financing Fee Earned"
+          value={formatCurrency(interestEarned)}
           icon={TrendingUp}
           delay={0.1}
         />
         <MetricCard
           title="Principal Repaid"
-          value={formatCurrency(investment.principalRepaid)}
+          value={formatCurrency(principalRepaid)}
           icon={PiggyBank}
           delay={0.15}
         />
@@ -106,7 +126,7 @@ export default function InvestorDashboardPage() {
           title="Total Repayments"
           value={formatCurrency(totalRepaid)}
           icon={Calendar}
-          subtitle={`Start ${formatDate(investment.startDate)}`}
+          subtitle={`${investments.length} investment${investments.length === 1 ? "" : "s"}`}
           delay={0.2}
         />
       </div>
@@ -117,18 +137,25 @@ export default function InvestorDashboardPage() {
           style={{ boxShadow: "var(--shadow-card)" }}
         >
           <CardHeader className="border-b border-border/30 bg-muted/15">
-            <CardTitle className="text-base font-semibold">Investment summary</CardTitle>
+            <CardTitle className="text-base font-semibold">Portfolio summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-5 text-sm">
             {[
-              ["Status", <StatusBadge key="s" status={displayStatus} />],
-              ["Start date", formatDate(investment.startDate)],
-              ["Rate", `${investment.interestRate}% p.a.`],
-              ["Term", `${investment.termMonths} months`],
-              ["Total repayments", formatCurrency(totalRepaid)],
-              ["Next payment", formatCurrency(investment.nextPaymentAmount)],
-              ["Due date", formatDate(investment.nextPaymentDate)],
-              ["Maturity", formatDate(investment.maturityDate)],
+              ["Investments", String(stats?.investmentCount ?? investments.length)],
+              ["Next payment", formatCurrency(Number(nextPaymentAmount))],
+              [
+                "Due date",
+                nextPaymentDate ? formatDate(String(nextPaymentDate)) : "—",
+              ],
+              [
+                "Upcoming payments",
+                String(stats?.upcomingPaymentCount ?? "—"),
+              ],
+              [
+                "Maturity",
+                maturityDate ? formatDate(String(maturityDate)) : "—",
+              ],
+              ["Returned amount", formatCurrency(totalRepaid)],
             ].map(([label, val]) => (
               <div key={String(label)} className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">{label}</span>
@@ -138,14 +165,63 @@ export default function InvestorDashboardPage() {
           </CardContent>
         </Card>
         <div className="lg:col-span-2">
-          <ChartCard title="Outstanding balance" description="Amortization trend over time">
+          <ChartCard title="Outstanding balance" description="Portfolio balance trend over time">
             <BalanceLineChart data={chartPayments} />
           </ChartCard>
         </div>
       </div>
 
+      <div className="space-y-3">
+        <SectionHeader
+          title="Your investments"
+          description="Each position has its own schedule, payments, and timeline."
+        />
+        <div className="grid gap-4 md:grid-cols-2">
+          {investments.map((inv) => {
+            const invPayments = payments.filter((p) => p.investmentId === inv.id);
+            const displayStatus = deriveInvestmentDisplayStatus(inv, invPayments);
+            return (
+              <Card
+                key={inv.id}
+                className="rounded-2xl border-border/40 bg-card/80"
+                style={{ boxShadow: "var(--shadow-card)" }}
+              >
+                <CardHeader className="flex flex-row items-center justify-between border-b border-border/30 bg-muted/15">
+                  <CardTitle className="text-base font-semibold">
+                    {formatCurrency(inv.principal)}
+                  </CardTitle>
+                  <StatusBadge status={displayStatus} />
+                </CardHeader>
+                <CardContent className="grid gap-2 p-4 text-sm sm:grid-cols-2">
+                  <div>
+                    <p className="text-muted-foreground">Repayment model</p>
+                    <p className="font-medium">{formatRepaymentModel(inv.repaymentModel)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Financing Fee</p>
+                    <p className="font-medium">{inv.interestRate}% p.a.</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Outstanding</p>
+                    <p className="font-medium tabular-financial">
+                      {formatCurrency(inv.outstandingBalance)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Next payment</p>
+                    <p className="font-medium tabular-financial">
+                      {formatCurrency(inv.nextPaymentAmount)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       <ChartCard
-        title="Principal vs interest"
+        title="Principal vs financing fee"
         description="Monthly repayment composition"
         delay={0.1}
       >
@@ -172,7 +248,8 @@ export default function InvestorDashboardPage() {
                 <div>
                   <p className="font-medium">{formatDate(p.dueDate)}</p>
                   <p className="text-xs text-muted-foreground">
-                    Principal {formatCurrency(p.principal)} · Interest {formatCurrency(p.interest)}
+                    Principal {formatCurrency(p.principal)} · Financing Fee{" "}
+                    {formatCurrency(p.interest)}
                   </p>
                 </div>
                 <div className="text-right">

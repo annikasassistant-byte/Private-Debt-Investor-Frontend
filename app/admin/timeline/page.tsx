@@ -17,9 +17,12 @@ export default function AdminTimelinePage() {
         <p className="text-sm text-muted-foreground">Portfolio-wide events and milestones.</p>
       </div>
       {events.length === 0 ? (
-        <EmptyState title="No timeline events" description="Events appear as investments and payments are recorded." />
+        <EmptyState
+          title="No timeline events"
+          description="Events appear as investments and payments are recorded."
+        />
       ) : (
-        <Timeline events={events} />
+        <Timeline events={events} autoScrollToUpcoming />
       )}
     </div>
   );

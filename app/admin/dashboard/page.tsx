@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
           icon={Wallet}
           subtitle={
             typeof stats.repaidSharePercent === "number" || typeof stats.portfolioGrowth === "number"
-              ? `${stats.repaidSharePercent ?? stats.portfolioGrowth}% of principal+interest repaid`
+              ? `${stats.repaidSharePercent ?? stats.portfolioGrowth}% of principal+financing fee repaid`
               : undefined
           }
         />
@@ -101,7 +101,7 @@ export default function AdminDashboardPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Interest Earned"
+          title="Financing Fee Earned"
           value={formatCurrency(stats.interestEarned)}
           icon={Banknote}
         />
@@ -131,7 +131,7 @@ export default function AdminDashboardPage() {
         </ChartCard>
       </div>
 
-      <ChartCard title="Revenue trends" description="Principal vs interest collections">
+      <ChartCard title="Revenue trends" description="Principal vs financing fee collections">
         <PrincipalInterestChart data={chartFromPayments} />
       </ChartCard>
 

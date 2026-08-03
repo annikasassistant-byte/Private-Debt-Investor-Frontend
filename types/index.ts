@@ -104,6 +104,8 @@ export interface TimelineEvent {
   date: string;
   amount?: number;
   status: "completed" | "upcoming" | "future" | "overdue";
+  investmentId?: string;
+  investorId?: string;
 }
 
 export type ReportCategory =

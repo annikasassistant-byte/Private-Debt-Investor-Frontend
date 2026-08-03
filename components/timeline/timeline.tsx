@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { TimelineEvent } from "@/types";
@@ -48,7 +49,54 @@ const icons = {
   loan_closed: Circle,
 };
 
-export function Timeline({ events }: { events: TimelineEvent[] }) {
+function isPaymentLike(event: TimelineEvent) {
+  return (
+    event.type.includes("payment") ||
+    event.status === "upcoming" ||
+    event.status === "overdue" ||
+    event.status === "future"
+  );
+}
+
+export function Timeline({
+  events,
+  autoScrollToUpcoming = false,
+}: {
+  events: TimelineEvent[];
+  /** Chronological order + scroll to next upcoming/overdue payment. */
+  autoScrollToUpcoming?: boolean;
+}) {
+  const upcomingRef = useRef<HTMLLIElement | null>(null);
+
+  const ordered = useMemo(() => {
+    if (!autoScrollToUpcoming) return events;
+    return [...events].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }, [events, autoScrollToUpcoming]);
+
+  const focusId = useMemo(() => {
+    if (!autoScrollToUpcoming) return null;
+    const overdue = ordered.find((e) => e.status === "overdue" && isPaymentLike(e));
+    if (overdue) return overdue.id;
+    const upcoming = ordered.find((e) => e.status === "upcoming" && isPaymentLike(e));
+    if (upcoming) return upcoming.id;
+    const scheduled = ordered.find(
+      (e) =>
+        (e.status === "future" ||
+          e.type === "scheduled_payment" ||
+          e.type === "upcoming_payment") &&
+        isPaymentLike(e)
+    );
+    return scheduled?.id ?? null;
+  }, [ordered, autoScrollToUpcoming]);
+
+  useEffect(() => {
+    if (!autoScrollToUpcoming || !focusId) return;
+    const timer = window.setTimeout(() => {
+      upcomingRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [autoScrollToUpcoming, focusId, ordered.length]);
+
   return (
     <div className="relative mx-auto max-w-3xl px-1 sm:px-0">
       <div
@@ -57,15 +105,16 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
       />
 
       <ul className="space-y-6 sm:space-y-10">
-        {events.map((event, index) => {
+        {ordered.map((event, index) => {
           const Icon = icons[event.type] ?? Circle;
           const styles = statusStyles[event.status];
-          const isUpcoming = event.status === "upcoming";
+          const isUpcoming = event.status === "upcoming" || event.id === focusId;
           const alignRight = index % 2 === 1;
 
           return (
             <motion.li
               key={event.id}
+              ref={event.id === focusId ? upcomingRef : undefined}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}

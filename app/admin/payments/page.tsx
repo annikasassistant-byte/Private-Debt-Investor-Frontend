@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import {
   useCancelPaymentMutation,
   useGetInvestmentsQuery,
+  useGetLoansQuery,
   useGetPaymentsQuery,
   useMarkPaymentPaidMutation,
 } from "@/services/domainApi";
@@ -21,11 +22,28 @@ import { EmptyState } from "@/components/shared/empty-state";
 export default function AdminPaymentsPage() {
   const { data: rows = [], isLoading, isError, refetch } = useGetPaymentsQuery();
   const { data: investments = [] } = useGetInvestmentsQuery();
+  const { data: loans = [] } = useGetLoansQuery();
   const [markPaid, { isLoading: marking }] = useMarkPaymentPaidMutation();
   const [cancelPayment] = useCancelPaymentMutation();
 
+  const borrowerByInvestment = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const loan of loans) {
+      if (loan.investmentId && loan.borrower) {
+        map.set(loan.investmentId, loan.borrower);
+      }
+    }
+    return map;
+  }, [loans]);
+
   const columns: ColumnDef<Payment>[] = useMemo(
     () => [
+      {
+        id: "borrowerName",
+        header: "Borrower Name",
+        accessorFn: (row) => borrowerByInvestment.get(row.investmentId) || "—",
+        cell: ({ row }) => borrowerByInvestment.get(row.original.investmentId) || "—",
+      },
       {
         accessorKey: "dueDate",
         header: "Due Date",
@@ -44,7 +62,7 @@ export default function AdminPaymentsPage() {
       },
       {
         accessorKey: "interest",
-        header: "Interest",
+        header: "Financing Fee",
         cell: ({ row }) => formatCurrencyPrecise(row.original.interest),
       },
       {
@@ -105,7 +123,7 @@ export default function AdminPaymentsPage() {
         },
       },
     ],
-    [markPaid, cancelPayment, marking]
+    [markPaid, cancelPayment, marking, borrowerByInvestment]
   );
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
