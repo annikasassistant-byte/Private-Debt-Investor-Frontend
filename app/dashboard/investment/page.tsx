@@ -17,9 +17,9 @@ export default function InvestorInvestmentPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load investment"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Investition konnte nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -34,16 +34,16 @@ export default function InvestorInvestmentPage() {
 
   if (investments.length === 0) {
     return (
-      <EmptyState title="No investment" description="No investment is linked to your account." />
+      <EmptyState title="Keine Investition" description="Mit Ihrem Konto ist keine Investition verknüpft." />
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Investments</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Meine Investitionen</h1>
         <p className="text-sm text-muted-foreground">
-          Details of each private debt allocation on your account.
+          Details zu jeder Private-Debt-Allokation auf Ihrem Konto.
         </p>
       </div>
 
@@ -69,25 +69,25 @@ export default function InvestorInvestmentPage() {
               <CardContent className="space-y-6">
                 <div>
                   <div className="mb-2 flex justify-between text-sm">
-                    <span className="text-muted-foreground">Principal repaid</span>
+                    <span className="text-muted-foreground">Tilgung geleistet</span>
                     <span className="font-medium">{repaidPct}%</span>
                   </div>
                   <Progress value={repaidPct} />
                 </div>
                 <div className="grid gap-4 text-sm sm:grid-cols-2">
                   {[
-                    ["Start date", formatDate(investment.startDate)],
-                    ["Financing Fee rate", `${investment.interestRate}% p.a.`],
-                    ["Term", `${investment.termMonths} months`],
-                    ["Repayment model", formatRepaymentModel(investment.repaymentModel)],
-                    ["Monthly payment", formatCurrency(investment.monthlyPayment)],
-                    ["Outstanding", formatCurrency(investment.outstandingBalance)],
-                    ["Total repayments", formatCurrency(totalRepaid)],
-                    ["Financing Fee earned", formatCurrency(investment.interestEarned)],
-                    ["Principal repaid", formatCurrency(investment.principalRepaid)],
-                    ["Next payment", formatCurrency(investment.nextPaymentAmount)],
-                    ["Next due", formatDate(investment.nextPaymentDate)],
-                    ["Maturity", formatDate(investment.maturityDate)],
+                    ["Startdatum", formatDate(investment.startDate)],
+                    ["Finanzierungsgebührensatz", `${investment.interestRate}% p.a.`],
+                    ["Laufzeit", `${investment.termMonths} Monate`],
+                    ["Rückzahlungsmodell", formatRepaymentModel(investment.repaymentModel)],
+                    ["Monatliche Rate", formatCurrency(investment.monthlyPayment)],
+                    ["Ausstehend", formatCurrency(investment.outstandingBalance)],
+                    ["Gesamtrückzahlungen", formatCurrency(totalRepaid)],
+                    ["Verdiente Finanzierungsgebühr", formatCurrency(investment.interestEarned)],
+                    ["Tilgung geleistet", formatCurrency(investment.principalRepaid)],
+                    ["Nächste Zahlung", formatCurrency(investment.nextPaymentAmount)],
+                    ["Nächste Fälligkeit", formatDate(investment.nextPaymentDate)],
+                    ["Fälligkeit", formatDate(investment.maturityDate)],
                   ].map(([k, v]) => (
                     <div key={String(k)}>
                       <p className="text-muted-foreground">{k}</p>

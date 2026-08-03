@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { TimelineEvent } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { paymentDisplayLabel } from "@/lib/investment-status";
 import {
   AlertCircle,
   Banknote,
@@ -162,7 +163,7 @@ export function Timeline({
                       styles.badge
                     )}
                   >
-                    {event.status}
+                    {paymentDisplayLabel(event.status)}
                   </span>
                 </div>
                 <h3 className="mt-2.5 text-base font-semibold tracking-tight">{event.title}</h3>

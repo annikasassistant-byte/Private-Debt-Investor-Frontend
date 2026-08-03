@@ -40,39 +40,39 @@ export default function AdminPaymentsPage() {
     () => [
       {
         id: "borrowerName",
-        header: "Borrower Name",
+        header: "Kreditnehmer",
         accessorFn: (row) => borrowerByInvestment.get(row.investmentId) || "—",
         cell: ({ row }) => borrowerByInvestment.get(row.original.investmentId) || "—",
       },
       {
         accessorKey: "dueDate",
-        header: "Due Date",
+        header: "Fälligkeitsdatum",
         cell: ({ row }) => formatDate(row.original.dueDate),
       },
       {
         accessorKey: "paymentDate",
-        header: "Payment Date",
+        header: "Zahlungsdatum",
         cell: ({ row }) =>
           row.original.paymentDate ? formatDate(row.original.paymentDate) : "—",
       },
       {
         accessorKey: "principal",
-        header: "Principal",
+        header: "Tilgung",
         cell: ({ row }) => formatCurrencyPrecise(row.original.principal),
       },
       {
         accessorKey: "interest",
-        header: "Financing Fee",
+        header: "Finanzierungsgebühr",
         cell: ({ row }) => formatCurrencyPrecise(row.original.interest),
       },
       {
         accessorKey: "total",
-        header: "Total",
+        header: "Gesamt",
         cell: ({ row }) => formatCurrencyPrecise(row.original.total),
       },
       {
         accessorKey: "remainingBalance",
-        header: "Balance",
+        header: "Restsaldo",
         cell: ({ row }) => formatCurrencyPrecise(row.original.remainingBalance),
       },
       {
@@ -96,13 +96,13 @@ export default function AdminPaymentsPage() {
                 onClick={async () => {
                   try {
                     await markPaid({ id: p.id }).unwrap();
-                    toast.success("Payment confirmed");
+                    toast.success("Zahlung bestätigt");
                   } catch (error) {
-                    toast.error(getApiErrorMessage(error, "Unable to confirm"));
+                    toast.error(getApiErrorMessage(error, "Konnte nicht bestätigt werden"));
                   }
                 }}
               >
-                Mark paid
+                Als bezahlt markieren
               </Button>
               <Button
                 size="sm"
@@ -110,13 +110,13 @@ export default function AdminPaymentsPage() {
                 onClick={async () => {
                   try {
                     await cancelPayment({ id: p.id }).unwrap();
-                    toast.success("Payment cancelled");
+                    toast.success("Zahlung storniert");
                   } catch (error) {
-                    toast.error(getApiErrorMessage(error, "Unable to cancel"));
+                    toast.error(getApiErrorMessage(error, "Konnte nicht storniert werden"));
                   }
                 }}
               >
-                Cancel
+                Abbrechen
               </Button>
             </div>
           );
@@ -130,9 +130,9 @@ export default function AdminPaymentsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load payments"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Zahlungen konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -144,8 +144,8 @@ export default function AdminPaymentsPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Payments</h1>
-          <p className="text-sm text-muted-foreground">Confirm and reconcile investor repayments.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Zahlungen</h1>
+          <p className="text-sm text-muted-foreground">Investorenrückzahlungen bestätigen und abstimmen.</p>
         </div>
         <Button
           disabled={!upcoming || marking}
@@ -153,17 +153,17 @@ export default function AdminPaymentsPage() {
             if (!upcoming) return;
             try {
               await markPaid({ id: upcoming.id }).unwrap();
-              toast.success("Payment confirmed");
+              toast.success("Zahlung bestätigt");
             } catch (error) {
-              toast.error(getApiErrorMessage(error, "Unable to confirm payment"));
+              toast.error(getApiErrorMessage(error, "Zahlung konnte nicht bestätigt werden"));
             }
           }}
         >
-          {marking ? "Confirming…" : "Confirm next payment"}
+          {marking ? "Wird bestätigt…" : "Nächste Zahlung bestätigen"}
         </Button>
       </div>
       {rows.length === 0 ? (
-        <EmptyState title="No payments" description="Create an investment to generate a schedule." />
+        <EmptyState title="Keine Zahlungen" description="Legen Sie eine Investition an, um einen Tilgungsplan zu erzeugen." />
       ) : (
         <DataTable
           columns={columns}

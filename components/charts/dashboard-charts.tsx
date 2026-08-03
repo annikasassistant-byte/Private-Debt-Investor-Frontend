@@ -80,8 +80,8 @@ export function PrincipalInterestChart({ data }: { data: ChartPoint[] }) {
         <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} width={40} />
         <Tooltip content={tooltipContent} cursor={tooltipCursor} />
         <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-        <Bar dataKey="principal" name="Principal" fill={chartColors.secondary} radius={[6, 6, 0, 0]} animationDuration={700} />
-        <Bar dataKey="interest" name="Financing Fee" fill={chartColors.tertiary} radius={[6, 6, 0, 0]} animationDuration={700} />
+        <Bar dataKey="principal" name="Tilgung" fill={chartColors.secondary} radius={[6, 6, 0, 0]} animationDuration={700} />
+        <Bar dataKey="interest" name="Finanzierungsgebühr" fill={chartColors.tertiary} radius={[6, 6, 0, 0]} animationDuration={700} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -112,7 +112,7 @@ export function AllocationPieChart({
             <Cell key={i} fill={fills[i % fills.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(v) => [`${Number(v ?? 0)}%`, "Allocation"]} />
+        <Tooltip formatter={(v) => [`${Number(v ?? 0)}%`, "Allokation"]} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
       </PieChart>
     </ResponsiveContainer>
@@ -136,7 +136,7 @@ export function BalanceLineChart({ data }: { data: ChartPoint[] }) {
         <Area
           type="monotone"
           dataKey="value"
-          name="Balance"
+          name="Saldo"
           stroke={chartColors.primary}
           fill="url(#balanceGrad)"
           strokeWidth={2.5}

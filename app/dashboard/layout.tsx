@@ -9,7 +9,7 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
   return (
     <AuthGuard allowedRoles={["investor"]}>
       <DashboardShell
-        sidebar={<AppSidebar groups={investorNavGroups} label="Investor Portal" />}
+        sidebar={<AppSidebar groups={investorNavGroups} label="Investoren-Portal" />}
         topbar={<TopNavbar profileHref="/dashboard/profile" />}
       >
         {children}

@@ -19,8 +19,8 @@ import { getApiErrorMessage } from "@/services/auth-mappers";
 const schema = z.object({
   otp: z
     .string()
-    .length(6, "Enter the 6-digit code")
-    .regex(/^\d+$/, "Code must contain only numbers"),
+    .length(6, "Geben Sie den 6-stelligen Code ein")
+    .regex(/^\d+$/, "Der Code darf nur Zahlen enthalten"),
 });
 
 export default function VerifyOtpPage() {
@@ -88,8 +88,8 @@ export default function VerifyOtpPage() {
   return (
     <AuthFlowShell
       step={2}
-      title="Enter verification code"
-      description={`We sent a 6-digit code to ${email}. Enter it below to continue.`}
+      title="Bestätigungscode eingeben"
+      description={`Wir haben einen 6-stelligen Code an ${email} gesendet. Geben Sie ihn unten ein, um fortzufahren.`}
     >
       <form
         className="space-y-5"
@@ -97,16 +97,16 @@ export default function VerifyOtpPage() {
           try {
             const data = await verifyOtp({ email, otp: values.otp }).unwrap();
             setResetToken(data.resetToken);
-            toast.success("Code verified");
+            toast.success("Code bestätigt");
             router.push("/reset-password");
           } catch (error) {
-            toast.error(getApiErrorMessage(error, "Invalid or expired code"));
+            toast.error(getApiErrorMessage(error, "Ungültiger oder abgelaufener Code"));
           }
         })}
       >
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            One-time password
+            Einmalpasswort
           </Label>
           <div className="flex justify-between gap-2" onPaste={onPaste}>
             {digits.map((d, i) => (
@@ -122,7 +122,7 @@ export default function VerifyOtpPage() {
                 onChange={(e) => updateDigit(i, e.target.value)}
                 onKeyDown={(e) => onKeyDown(i, e)}
                 className="h-12 w-11 rounded-xl px-0 text-center text-lg font-semibold tabular-financial sm:h-14 sm:w-12"
-                aria-label={`Digit ${i + 1}`}
+                aria-label={`Ziffer ${i + 1}`}
               />
             ))}
           </div>
@@ -130,7 +130,7 @@ export default function VerifyOtpPage() {
         </div>
 
         <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
-          {isLoading ? "Verifying…" : "Verify code"}
+          {isLoading ? "Wird geprüft…" : "Code bestätigen"}
         </Button>
         <Button
           type="button"
@@ -140,19 +140,19 @@ export default function VerifyOtpPage() {
           onClick={async () => {
             try {
               await resendOtp({ email }).unwrap();
-              toast.success("A new code has been sent");
+              toast.success("Ein neuer Code wurde gesendet");
             } catch (error) {
-              toast.error(getApiErrorMessage(error, "Unable to resend code"));
+              toast.error(getApiErrorMessage(error, "Code konnte nicht erneut gesendet werden"));
             }
           }}
         >
-          {isResending ? "Resending…" : "Resend code"}
+          {isResending ? "Wird erneut gesendet…" : "Code erneut senden"}
         </Button>
         <Link
           href="/forgot-password"
           className={cn(buttonVariants({ variant: "ghost" }), "w-full rounded-xl")}
         >
-          Use a different email
+          Andere E-Mail verwenden
         </Link>
       </form>
     </AuthFlowShell>

@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 export function SearchInput({
   value,
   onChange,
-  placeholder = "Search...",
+  placeholder = "Suchen…",
   className,
 }: {
   value: string;

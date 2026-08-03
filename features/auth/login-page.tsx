@@ -19,8 +19,8 @@ import { getApiErrorMessage } from "@/services/auth-mappers";
 import { toast } from "sonner";
 
 const schema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password is required"),
+  email: z.string().email("Geben Sie eine gültige E-Mail-Adresse ein"),
+  password: z.string().min(6, "Passwort ist erforderlich"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -101,7 +101,7 @@ export function LoginPage() {
             : null;
 
       setNavigating(true);
-      toast.success("Welcome back");
+      toast.success("Willkommen zurück");
       if (target) {
         router.replace(target);
       } else {
@@ -109,7 +109,7 @@ export function LoginPage() {
       }
     } catch (error) {
       setNavigating(false);
-      toast.error(getApiErrorMessage(error, "Invalid email or password"));
+      toast.error(getApiErrorMessage(error, "Ungültige E-Mail oder Passwort"));
     }
   };
 
@@ -134,12 +134,12 @@ export function LoginPage() {
           role="status"
           aria-live="polite"
           aria-busy="true"
-          aria-label="Signing in"
+          aria-label="Anmelden"
         >
           <div className="glass-panel-strong mx-4 flex w-full max-w-xs flex-col items-center rounded-2xl px-8 py-10 shadow-xl shadow-primary/10">
             <BrandedLoader className="min-h-0 gap-5" />
             <p className="mt-1 text-center text-sm text-muted-foreground">
-              Signing you in securely…
+              Sichere Anmeldung läuft…
             </p>
           </div>
         </div>
@@ -160,14 +160,14 @@ export function LoginPage() {
         <div className="max-w-md space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            Private debt investor portal
+            Private-Debt-Investorenportal
           </div>
           <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-gradient-primary xl:text-5xl">
-            Clarity for every capital commitment.
+            Klarheit für jedes Kapitalengagement.
           </h1>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Monitor performance, repayments, and documents in a secure environment built for
-            institutional investors.
+            Überwachen Sie Performance, Rückzahlungen und Dokumente in einer sicheren Umgebung für
+            institutionelle Investoren.
           </p>
         </div>
         <p className="text-sm text-muted-foreground">© 2026 Depth Capital</p>
@@ -189,13 +189,13 @@ export function LoginPage() {
 
           <div className="glass-panel-strong rounded-2xl p-6 sm:p-8">
             <div className="mb-8 space-y-2">
-              <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">Anmelden</h2>
               <p className="text-sm text-muted-foreground">
-                Access your investor or administrator workspace.
+                Zugang zu Ihrem Investoren- oder Administrator-Bereich.
               </p>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <Field id="email" label="Email" error={errors.email?.message}>
+              <Field id="email" label="E-Mail" error={errors.email?.message}>
                 <Input
                   id="email"
                   type="email"
@@ -205,7 +205,7 @@ export function LoginPage() {
                   {...register("email")}
                 />
               </Field>
-              <Field id="password" label="Password" error={errors.password?.message}>
+              <Field id="password" label="Passwort" error={errors.password?.message}>
                 <div className="space-y-2">
                   <PasswordInput
                     id="password"
@@ -221,7 +221,7 @@ export function LoginPage() {
                       tabIndex={busy ? -1 : undefined}
                       aria-disabled={busy}
                     >
-                      Forgot password?
+                      Passwort vergessen?
                     </Link>
                   </div>
                 </div>
@@ -237,11 +237,11 @@ export function LoginPage() {
                       <span className="absolute inset-0 rounded-full border-2 border-primary-foreground/25" />
                       <span className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-primary-foreground" />
                     </span>
-                    Signing in…
+                    Anmelden…
                   </span>
                 ) : (
                   <>
-                    Continue
+                    Weiter
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}

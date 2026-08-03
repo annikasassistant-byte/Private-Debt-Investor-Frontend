@@ -17,18 +17,18 @@ export default function AdminNotificationsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
-        <p className="text-sm text-muted-foreground">System and portfolio alerts from live timeline events.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Benachrichtigungen</h1>
+        <p className="text-sm text-muted-foreground">System- und Portfoliohinweise aus Live-Zeitachsen-Ereignissen.</p>
       </div>
       {notifications.length === 0 ? (
-        <EmptyState title="No notifications" description="Alerts appear when payments and investments change." />
+        <EmptyState title="Keine Benachrichtigungen" description="Hinweise erscheinen, wenn sich Zahlungen und Investitionen ändern." />
       ) : (
         <div className="space-y-3">
           {notifications.map((n) => (
             <Card key={n.id}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-base">{n.title}</CardTitle>
-                {!n.read && <Badge>New</Badge>}
+                {!n.read && <Badge>Neu</Badge>}
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">{n.message}</p>

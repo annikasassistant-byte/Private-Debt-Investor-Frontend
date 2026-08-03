@@ -52,15 +52,15 @@ export default function AdminLoansPage() {
 
   const columns: ColumnDef<Loan>[] = useMemo(
     () => [
-      { accessorKey: "borrower", header: "Borrower" },
+      { accessorKey: "borrower", header: "Kreditnehmer" },
       {
         accessorKey: "amount",
-        header: "Amount",
+        header: "Betrag",
         cell: ({ row }) => formatCurrency(row.original.amount),
       },
       {
         accessorKey: "rate",
-        header: "Rate",
+        header: "Satz",
         cell: ({ row }) => `${row.original.rate}%`,
       },
       {
@@ -70,7 +70,7 @@ export default function AdminLoansPage() {
       },
       {
         accessorKey: "fundedAt",
-        header: "Funded",
+        header: "Ausgezahlt",
         cell: ({ row }) => formatDate(row.original.fundedAt),
       },
       {
@@ -84,9 +84,9 @@ export default function AdminLoansPage() {
               onClick={async () => {
                 try {
                   await deleteLoan(row.original.id).unwrap();
-                  toast.success("Loan removed");
+                  toast.success("Kredit entfernt");
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to delete loan"));
+                  toast.error(getApiErrorMessage(error, "Kredit konnte nicht gelöscht werden"));
                 }
               }}
             >
@@ -103,9 +103,9 @@ export default function AdminLoansPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load loans"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Kredite konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -115,29 +115,29 @@ export default function AdminLoansPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Loans</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Kredite</h1>
           <p className="text-sm text-muted-foreground">
-            Underlying loan facilities linked to investments.
+            Zugrunde liegende Kreditfazilitäten, verknüpft mit Investitionen.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={cn(buttonVariants())}>
             <Plus className="mr-2 h-4 w-4" />
-            Create loan
+            Kredit anlegen
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create loan</DialogTitle>
+              <DialogTitle>Kredit anlegen</DialogTitle>
             </DialogHeader>
             <div className="grid gap-3 py-2">
               <div className="space-y-2">
-                <Label>Investment</Label>
+                <Label>Investition</Label>
                 <Select
                   value={form.investmentId}
                   onValueChange={(v) => setForm((f) => ({ ...f, investmentId: v || "" }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select investment" />
+                    <SelectValue placeholder="Investition auswählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {investments.map((inv) => (
@@ -149,14 +149,14 @@ export default function AdminLoansPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Borrower</Label>
+                <Label>Kreditnehmer</Label>
                 <Input
                   value={form.borrower}
                   onChange={(e) => setForm((f) => ({ ...f, borrower: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Amount (optional)</Label>
+                <Label>Betrag (optional)</Label>
                 <Input
                   type="number"
                   value={form.amount}
@@ -164,7 +164,7 @@ export default function AdminLoansPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Rate % (optional)</Label>
+                <Label>Satz % (optional)</Label>
                 <Input
                   type="number"
                   value={form.rate}
@@ -183,22 +183,22 @@ export default function AdminLoansPage() {
                       ...(form.amount ? { amount: Number(form.amount) } : {}),
                       ...(form.rate ? { rate: Number(form.rate) } : {}),
                     }).unwrap();
-                    toast.success("Loan created");
+                    toast.success("Kredit angelegt");
                     setOpen(false);
                     setForm({ investmentId: "", borrower: "", amount: "", rate: "" });
                   } catch (error) {
-                    toast.error(getApiErrorMessage(error, "Unable to create loan"));
+                    toast.error(getApiErrorMessage(error, "Kredit konnte nicht angelegt werden"));
                   }
                 }}
               >
-                {creating ? "Saving…" : "Save"}
+                {creating ? "Speichern…" : "Speichern"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
       {rows.length === 0 ? (
-        <EmptyState title="No loans yet" description="Create a loan linked to an investment." />
+        <EmptyState title="Noch keine Kredite" description="Legen Sie einen Kredit an, der mit einer Investition verknüpft ist." />
       ) : (
         <DataTable columns={columns} data={rows} searchKey="borrower" showExport={false} />
       )}

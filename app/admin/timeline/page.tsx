@@ -13,13 +13,13 @@ export default function AdminTimelinePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Timeline</h1>
-        <p className="text-sm text-muted-foreground">Portfolio-wide events and milestones.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Zeitachse</h1>
+        <p className="text-sm text-muted-foreground">Portfolioweite Ereignisse und Meilensteine.</p>
       </div>
       {events.length === 0 ? (
         <EmptyState
-          title="No timeline events"
-          description="Events appear as investments and payments are recorded."
+          title="Keine Zeitachsen-Ereignisse"
+          description="Ereignisse erscheinen, sobald Investitionen und Zahlungen erfasst werden."
         />
       ) : (
         <Timeline events={events} autoScrollToUpcoming />

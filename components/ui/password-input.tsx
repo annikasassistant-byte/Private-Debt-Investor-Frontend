@@ -23,7 +23,7 @@ export const PasswordInput = React.forwardRef<
         type="button"
         onClick={() => setVisible((v) => !v)}
         className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-        aria-label={visible ? "Hide password" : "Show password"}
+        aria-label={visible ? "Passwort verbergen" : "Passwort anzeigen"}
         aria-pressed={visible}
         tabIndex={0}
       >

@@ -15,7 +15,7 @@ import { setResetEmail } from "@/lib/password-reset-flow";
 import { useForgotPasswordMutation } from "@/services/authApi";
 import { getApiErrorMessage } from "@/services/auth-mappers";
 
-const schema = z.object({ email: z.string().email("Enter a valid email") });
+const schema = z.object({ email: z.string().email("Geben Sie eine gültige E-Mail-Adresse ein") });
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -31,8 +31,8 @@ export default function ForgotPasswordPage() {
   return (
     <AuthFlowShell
       step={1}
-      title="Forgot your password?"
-      description="Enter the email associated with your account. We'll send a one-time code to verify it's you."
+      title="Passwort vergessen?"
+      description="Geben Sie die E-Mail-Adresse Ihres Kontos ein. Wir senden einen Einmalcode zur Bestätigung."
     >
       <form
         className="space-y-5"
@@ -40,10 +40,10 @@ export default function ForgotPasswordPage() {
           try {
             await forgotPassword({ email: values.email.trim() }).unwrap();
             setResetEmail(values.email.trim());
-            toast.success("If that email exists, a verification code has been sent");
+            toast.success("Falls diese E-Mail existiert, wurde ein Bestätigungscode gesendet");
             router.push("/verify-otp");
           } catch (error) {
-            toast.error(getApiErrorMessage(error, "Unable to send reset code"));
+            toast.error(getApiErrorMessage(error, "Reset-Code konnte nicht gesendet werden"));
           }
         })}
       >
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
             htmlFor="email"
             className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
-            Email
+            E-Mail
           </Label>
           <Input
             id="email"
@@ -64,13 +64,13 @@ export default function ForgotPasswordPage() {
           {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
         </div>
         <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
-          {isLoading ? "Sending…" : "Continue"}
+          {isLoading ? "Wird gesendet…" : "Weiter"}
         </Button>
         <Link
           href="/login"
           className={cn(buttonVariants({ variant: "ghost" }), "w-full rounded-xl")}
         >
-          Back to sign in
+          Zurück zur Anmeldung
         </Link>
       </form>
     </AuthFlowShell>

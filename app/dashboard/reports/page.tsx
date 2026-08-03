@@ -11,9 +11,9 @@ export default function InvestorReportsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load reports"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Berichte konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -21,13 +21,13 @@ export default function InvestorReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground">Documents assigned to your account.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Berichte</h1>
+        <p className="text-sm text-muted-foreground">Dokumente, die Ihrem Konto zugewiesen sind.</p>
       </div>
       {reports.length === 0 ? (
         <EmptyState
-          title="No reports"
-          description="Reports assigned by your administrator will appear here."
+          title="Keine Berichte"
+          description="Vom Administrator zugewiesene Berichte erscheinen hier."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -11,9 +11,9 @@ export default function InvestorContractsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load contracts"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Verträge konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -21,13 +21,13 @@ export default function InvestorContractsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Contracts</h1>
-        <p className="text-sm text-muted-foreground">Agreements assigned to your account.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Verträge</h1>
+        <p className="text-sm text-muted-foreground">Vereinbarungen, die Ihrem Konto zugewiesen sind.</p>
       </div>
       {contracts.length === 0 ? (
         <EmptyState
-          title="No contracts"
-          description="Contracts assigned by your administrator will appear here."
+          title="Keine Verträge"
+          description="Vom Administrator zugewiesene Verträge erscheinen hier."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -35,7 +35,7 @@ export default function InvestorContractsPage() {
             <DocumentCard
               key={c.id}
               title={c.title}
-              meta={`Signed ${c.signedAt} · ${c.size}`}
+              meta={`Unterzeichnet ${c.signedAt} · ${c.size}`}
               badge={c.type.replace(/_/g, " ")}
               downloadPath={`/contracts/${c.id}/download`}
             />

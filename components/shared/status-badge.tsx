@@ -34,11 +34,11 @@ const styles: Record<BadgeStatus, string> = {
 };
 
 const INVESTMENT_LABELS: Partial<Record<BadgeStatus, string>> = {
-  repayment_in_progress: "Repayment in Progress",
-  fully_repaid: "Fully Repaid",
-  payment_due: "Payment Due",
-  overdue: "Overdue",
-  active: "Active",
+  repayment_in_progress: "Rückzahlung läuft",
+  fully_repaid: "Vollständig zurückgezahlt",
+  payment_due: "Zahlung fällig",
+  overdue: "Überfällig",
+  active: "Aktiv",
 };
 
 export function StatusBadge({

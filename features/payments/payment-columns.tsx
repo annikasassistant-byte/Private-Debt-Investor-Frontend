@@ -12,7 +12,7 @@ export const paymentColumns: ColumnDef<Payment>[] = [
     accessorKey: "dueDate",
     header: ({ column }) => (
       <Button variant="ghost" size="sm" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Scheduled Due
+        Geplante Fälligkeit
         <ArrowUpDown className="ml-2 h-3.5 w-3.5" />
       </Button>
     ),
@@ -28,7 +28,7 @@ export const paymentColumns: ColumnDef<Payment>[] = [
             </div>
           ) : p.contractualDueDate && p.contractualDueDate !== p.dueDate ? (
             <div className="text-[11px] text-muted-foreground">
-              Contractual {formatDate(p.contractualDueDate)}
+              Vertraglich {formatDate(p.contractualDueDate)}
             </div>
           ) : null}
         </div>
@@ -37,28 +37,28 @@ export const paymentColumns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "paymentDate",
-    header: "Actual Payment",
+    header: "Tatsächliche Zahlung",
     cell: ({ row }) =>
       row.original.paymentDate ? formatDate(row.original.paymentDate) : "—",
   },
   {
     accessorKey: "principal",
-    header: "Principal",
+    header: "Tilgung",
     cell: ({ row }) => formatCurrencyPrecise(row.original.principal),
   },
   {
     accessorKey: "interest",
-    header: "Financing Fee",
+    header: "Finanzierungsgebühr",
     cell: ({ row }) => formatCurrencyPrecise(row.original.interest),
   },
   {
     accessorKey: "total",
-    header: "Total Payment",
+    header: "Gesamtzahlung",
     cell: ({ row }) => formatCurrencyPrecise(row.original.total),
   },
   {
     accessorKey: "remainingBalance",
-    header: "Remaining Balance",
+    header: "Restsaldo",
     cell: ({ row }) => formatCurrency(row.original.remainingBalance),
   },
   {

@@ -98,14 +98,14 @@ export function DataTable<TData, TValue>({
       if (exportInvestmentId) {
         const { exportPaymentsFile } = await import("@/lib/download");
         await exportPaymentsFile(exportInvestmentId, format);
-        toast.success(`${format.toUpperCase()} downloaded`);
+        toast.success(`${format.toUpperCase()} heruntergeladen`);
         return;
       }
       // Client-side CSV fallback from visible rows
       if (format === "csv") {
         const rows = table.getFilteredRowModel().rows;
         if (!rows.length) {
-          toast.message("Nothing to export");
+          toast.message("Nichts zum Exportieren");
           return;
         }
         const keys = table
@@ -131,12 +131,12 @@ export function DataTable<TData, TValue>({
         a.download = "export.csv";
         a.click();
         URL.revokeObjectURL(url);
-        toast.success("CSV downloaded");
+        toast.success("CSV heruntergeladen");
         return;
       }
-      toast.message("Select an investment schedule to export PDF");
+      toast.message("Wählen Sie einen Investitions-Zahlungsplan für den PDF-Export");
     } catch {
-      toast.error("Export failed");
+      toast.error("Export fehlgeschlagen");
     }
   };
 
@@ -151,7 +151,7 @@ export function DataTable<TData, TValue>({
         <SearchInput
           value={globalFilter}
           onChange={setGlobalFilter}
-          placeholder={searchPlaceholder ?? "Search..."}
+          placeholder={searchPlaceholder ?? "Suchen…"}
           className="w-full sm:max-w-sm"
         />
         <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function DataTable<TData, TValue>({
               )}
             >
               <Columns3 className="mr-2 h-4 w-4" />
-              Columns
+              Spalten
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl">
               {table
@@ -207,9 +207,9 @@ export function DataTable<TData, TValue>({
 
       {!hasRows ? (
         <EmptyState
-          title="No matching records"
-          description="Try adjusting your search or filters to find what you're looking for."
-          actionLabel="Clear search"
+          title="Keine passenden Einträge"
+          description="Passen Sie Ihre Suche oder Filter an, um passende Ergebnisse zu finden."
+          actionLabel="Suche zurücksetzen"
           onAction={() => setGlobalFilter("")}
         />
       ) : (
@@ -256,11 +256,11 @@ export function DataTable<TData, TValue>({
 
       <div className="flex flex-col gap-3 rounded-2xl border border-border/30 bg-muted/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Page{" "}
+          Seite{" "}
           <span className="font-medium text-foreground">
             {table.getState().pagination.pageIndex + 1}
           </span>{" "}
-          of <span className="font-medium text-foreground">{table.getPageCount() || 1}</span>
+          von <span className="font-medium text-foreground">{table.getPageCount() || 1}</span>
         </p>
         <div className="flex gap-2">
           <Button
@@ -271,7 +271,7 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            Zurück
           </Button>
           <Button
             variant="outline"
@@ -280,7 +280,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Next
+            Weiter
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

@@ -49,13 +49,19 @@ export default function AdminDashboardPage() {
     closed: "var(--chart-3)",
     pending: "var(--chart-4)",
   };
+  const statusLabels: Record<string, string> = {
+    active: "Aktiv",
+    matured: "Fällig gestellt",
+    closed: "Geschlossen",
+    pending: "Ausstehend",
+  };
   const allocationByStatus = Object.entries(
     investments.reduce<Record<string, number>>((acc, inv) => {
       acc[inv.status] = (acc[inv.status] || 0) + inv.principal;
       return acc;
     }, {})
   ).map(([name, value]) => ({
-    name,
+    name: statusLabels[name] || name,
     value,
     fill: statusColors[name] || "var(--chart-5)",
   }));
@@ -72,77 +78,77 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Admin Dashboard"
-        description="Portfolio overview across investors, loans, and collections."
+        title="Admin-Übersicht"
+        description="Portfolioübersicht über Investoren, Kredite und Einzüge."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Active Investors" value={String(stats.totalInvestors)} icon={Users} />
+        <MetricCard title="Aktive Investoren" value={String(stats.totalInvestors)} icon={Users} />
         <MetricCard
-          title="Portfolio Value"
+          title="Portfoliowert"
           value={formatCurrency(stats.portfolioValue)}
           icon={Wallet}
           subtitle={
             typeof stats.repaidSharePercent === "number" || typeof stats.portfolioGrowth === "number"
-              ? `${stats.repaidSharePercent ?? stats.portfolioGrowth}% of principal+financing fee repaid`
+              ? `${stats.repaidSharePercent ?? stats.portfolioGrowth}% von Hauptsumme + Finanzierungsgebühr zurückgezahlt`
               : undefined
           }
         />
         <MetricCard
-          title="Outstanding Balance"
+          title="Offener Saldo"
           value={formatCurrency(stats.outstanding)}
           icon={Building2}
         />
         <MetricCard
-          title="Total Investments"
+          title="Investitionen gesamt"
           value={String(stats.totalInvestments)}
           icon={TrendingUp}
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Financing Fee Earned"
+          title="Vereinnahmte Finanzierungsgebühr"
           value={formatCurrency(stats.interestEarned)}
           icon={Banknote}
         />
         <MetricCard
-          title="Upcoming Payments"
+          title="Anstehende Zahlungen"
           value={String(stats.upcomingPayments)}
           icon={TrendingUp}
         />
         <MetricCard
-          title="Overdue Payments"
+          title="Überfällige Zahlungen"
           value={String(stats.overduePayments)}
           icon={AlertTriangle}
         />
         <MetricCard
-          title="Collection Rate"
+          title="Einzugsquote"
           value={`${stats.collectionRate}%`}
           icon={TrendingUp}
         />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Portfolio growth" description="Remaining balance trend">
+        <ChartCard title="Portfoliowachstum" description="Entwicklung des Restsaldos">
           <PortfolioGrowthChart data={chartFromPayments} />
         </ChartCard>
-        <ChartCard title="Investment allocation" description="By status">
+        <ChartCard title="Investitionsallokation" description="Nach Status">
           <AllocationPieChart data={allocationByStatus} />
         </ChartCard>
       </div>
 
-      <ChartCard title="Revenue trends" description="Principal vs financing fee collections">
+      <ChartCard title="Einnahmenentwicklung" description="Tilgung vs. Finanzierungsgebühr">
         <PrincipalInterestChart data={chartFromPayments} />
       </ChartCard>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="rounded-2xl border-border/40 bg-card/80" style={{ boxShadow: "var(--shadow-card)" }}>
           <CardHeader className="border-b border-border/30 bg-muted/15">
-            <CardTitle className="text-base font-semibold">Recent activity</CardTitle>
+            <CardTitle className="text-base font-semibold">Letzte Aktivitäten</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-4">
             {activities.length === 0 ? (
-              <EmptyState title="No activity yet" description="Timeline events will appear here." />
+              <EmptyState title="Noch keine Aktivitäten" description="Zeitachsen-Ereignisse erscheinen hier." />
             ) : (
               activities.map((a) => (
                 <div
@@ -161,11 +167,11 @@ export default function AdminDashboardPage() {
         </Card>
         <Card className="rounded-2xl border-border/40 bg-card/80" style={{ boxShadow: "var(--shadow-card)" }}>
           <CardHeader className="border-b border-border/30 bg-muted/15">
-            <CardTitle className="text-base font-semibold">Notifications</CardTitle>
+            <CardTitle className="text-base font-semibold">Benachrichtigungen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-4">
             {notifications.length === 0 ? (
-              <EmptyState title="No alerts" description="Payment and portfolio alerts will appear here." />
+              <EmptyState title="Keine Hinweise" description="Zahlungs- und Portfoliohinweise erscheinen hier." />
             ) : (
               notifications.map((n) => (
                 <div

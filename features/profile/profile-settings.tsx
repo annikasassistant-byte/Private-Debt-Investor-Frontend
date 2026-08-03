@@ -48,17 +48,17 @@ export function ProfileSettings() {
   if (isLoading) return <LoadingSkeleton variant="page" />;
 
   const displayName =
-    [firstName, lastName].filter(Boolean).join(" ") || localUser?.name || profile?.email || "User";
+    [firstName, lastName].filter(Boolean).join(" ") || localUser?.name || profile?.email || "Benutzer";
   const initials = getUserInitials(displayName);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">Manage your personal and contact information.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Profil</h1>
+        <p className="text-sm text-muted-foreground">Verwalten Sie Ihre persönlichen und Kontaktdaten.</p>
       </div>
       {isError && (
-        <p className="text-sm text-destructive">Unable to load profile from the server.</p>
+        <p className="text-sm text-destructive">Profil konnte nicht vom Server geladen werden.</p>
       )}
       <Card>
         <CardHeader className="flex flex-row items-center gap-4">
@@ -72,7 +72,7 @@ export function ProfileSettings() {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="firstName">First name</Label>
+            <Label htmlFor="firstName">Vorname</Label>
             <Input
               id="firstName"
               value={firstName}
@@ -80,15 +80,15 @@ export function ProfileSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lastName">Last name</Label>
+            <Label htmlFor="lastName">Nachname</Label>
             <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>E-Mail</Label>
             <Input value={profile?.email || localUser?.email || ""} disabled />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Telefon</Label>
             <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <Button
@@ -102,30 +102,30 @@ export function ProfileSettings() {
                   phone: phone.trim() || null,
                 }).unwrap();
                 setUser(mapServerUserToClient(updated));
-                toast.success("Profile updated");
+                toast.success("Profil aktualisiert");
               } catch (error) {
-                toast.error(getApiErrorMessage(error, "Unable to update profile"));
+                toast.error(getApiErrorMessage(error, "Profil konnte nicht aktualisiert werden"));
               }
             }}
           >
-            {isSaving ? "Saving…" : "Save changes"}
+            {isSaving ? "Wird gespeichert…" : "Änderungen speichern"}
           </Button>
         </CardContent>
       </Card>
       {localUser?.role === "investor" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Investment summary</CardTitle>
+            <CardTitle className="text-base">Investitionsübersicht</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <p className="text-muted-foreground">Allocated</p>
+              <p className="text-muted-foreground">Zugewiesen</p>
               <p className="font-semibold">
                 {formatCurrency(investment?.principal ?? 0)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Outstanding</p>
+              <p className="text-muted-foreground">Ausstehend</p>
               <p className="font-semibold">
                 {formatCurrency(investment?.outstandingBalance ?? 0)}
               </p>
@@ -135,11 +135,11 @@ export function ProfileSettings() {
       )}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Password</CardTitle>
+          <CardTitle className="text-base">Passwort</CardTitle>
         </CardHeader>
         <CardContent className="grid max-w-md gap-3">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current password</Label>
+            <Label htmlFor="currentPassword">Aktuelles Passwort</Label>
             <PasswordInput
               id="currentPassword"
               value={currentPassword}
@@ -148,7 +148,7 @@ export function ProfileSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="newPassword">New password</Label>
+            <Label htmlFor="newPassword">Neues Passwort</Label>
             <PasswordInput
               id="newPassword"
               value={newPassword}
@@ -161,22 +161,22 @@ export function ProfileSettings() {
             disabled={isChangingPassword}
             onClick={async () => {
               if (!currentPassword || !newPassword) {
-                toast.error("Enter current and new password");
+                toast.error("Aktuelles und neues Passwort eingeben");
                 return;
               }
               try {
                 await changePassword({ currentPassword, newPassword }).unwrap();
                 setCurrentPassword("");
                 setNewPassword("");
-                toast.success("Password updated — please sign in again");
+                toast.success("Passwort aktualisiert — bitte erneut anmelden");
                 useAuthStore.getState().logout();
                 window.location.href = "/login";
               } catch (error) {
-                toast.error(getApiErrorMessage(error, "Unable to change password"));
+                toast.error(getApiErrorMessage(error, "Passwort konnte nicht geändert werden"));
               }
             }}
           >
-            {isChangingPassword ? "Updating…" : "Update password"}
+            {isChangingPassword ? "Wird aktualisiert…" : "Passwort aktualisieren"}
           </Button>
         </CardContent>
       </Card>

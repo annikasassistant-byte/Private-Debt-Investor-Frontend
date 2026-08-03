@@ -55,16 +55,16 @@ export default function AdminInvestorsPage() {
   const columns: ColumnDef<Investor>[] = useMemo(
     () => [
       { accessorKey: "name", header: "Name" },
-      { accessorKey: "email", header: "Email" },
-      { accessorKey: "company", header: "Company" },
+      { accessorKey: "email", header: "E-Mail" },
+      { accessorKey: "company", header: "Unternehmen" },
       {
         accessorKey: "totalInvested",
-        header: "Invested",
+        header: "Investiert",
         cell: ({ row }) => formatCurrency(row.original.totalInvested),
       },
       {
         accessorKey: "outstandingBalance",
-        header: "Outstanding",
+        header: "Offener Saldo",
         cell: ({ row }) => formatCurrency(row.original.outstandingBalance),
       },
       {
@@ -74,7 +74,7 @@ export default function AdminInvestorsPage() {
       },
       {
         accessorKey: "joinedAt",
-        header: "Joined",
+        header: "Beigetreten",
         cell: ({ row }) => formatDate(row.original.joinedAt),
       },
       {
@@ -104,9 +104,9 @@ export default function AdminInvestorsPage() {
               onClick={async () => {
                 try {
                   await deleteInvestor(row.original.id).unwrap();
-                  toast.success("Investor removed");
+                  toast.success("Investor entfernt");
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to delete investor"));
+                  toast.error(getApiErrorMessage(error, "Investor konnte nicht gelöscht werden"));
                 }
               }}
             >
@@ -123,9 +123,9 @@ export default function AdminInvestorsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load investors"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Investoren konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -135,26 +135,26 @@ export default function AdminInvestorsPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Investors</h1>
-          <p className="text-sm text-muted-foreground">Manage investor accounts and allocations.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Investoren</h1>
+          <p className="text-sm text-muted-foreground">Investorenkonten und Allokationen verwalten.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={cn(buttonVariants())}>
             <Plus className="mr-2 h-4 w-4" />
-            Create investor
+            Investor anlegen
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create investor</DialogTitle>
+              <DialogTitle>Investor anlegen</DialogTitle>
             </DialogHeader>
             <div className="grid gap-3 py-2">
               {(
                 [
-                  ["name", "Full name"],
-                  ["email", "Email"],
-                  ["password", "Temp password"],
-                  ["phone", "Phone"],
-                  ["company", "Company"],
+                  ["name", "Vollständiger Name"],
+                  ["email", "E-Mail"],
+                  ["password", "Temporäres Passwort"],
+                  ["phone", "Telefon"],
+                  ["company", "Unternehmen"],
                 ] as const
               ).map(([key, label]) => (
                 <div key={key} className="space-y-2">
@@ -173,15 +173,15 @@ export default function AdminInvestorsPage() {
                 onClick={async () => {
                   try {
                     await createInvestor(form).unwrap();
-                    toast.success("Investor created");
+                    toast.success("Investor angelegt");
                     setOpen(false);
                     setForm({ name: "", email: "", password: "", phone: "", company: "" });
                   } catch (error) {
-                    toast.error(getApiErrorMessage(error, "Unable to create investor"));
+                    toast.error(getApiErrorMessage(error, "Investor konnte nicht angelegt werden"));
                   }
                 }}
               >
-                {creating ? "Saving…" : "Save"}
+                {creating ? "Speichern…" : "Speichern"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -191,14 +191,14 @@ export default function AdminInvestorsPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit investor</DialogTitle>
+            <DialogTitle>Investor bearbeiten</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             {(
               [
-                ["name", "Full name"],
-                ["phone", "Phone"],
-                ["company", "Company"],
+                ["name", "Vollständiger Name"],
+                ["phone", "Telefon"],
+                ["company", "Unternehmen"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="space-y-2">
@@ -221,8 +221,8 @@ export default function AdminInvestorsPage() {
                   }))
                 }
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Aktiv</option>
+                <option value="inactive">Inaktiv</option>
               </select>
             </div>
           </div>
@@ -233,28 +233,28 @@ export default function AdminInvestorsPage() {
                 if (!editing) return;
                 try {
                   await updateInvestor({ id: editing.id, body: editForm }).unwrap();
-                  toast.success("Investor updated");
+                  toast.success("Investor aktualisiert");
                   setEditOpen(false);
                   setEditing(null);
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to update investor"));
+                  toast.error(getApiErrorMessage(error, "Investor konnte nicht aktualisiert werden"));
                 }
               }}
             >
-              {updating ? "Saving…" : "Save changes"}
+              {updating ? "Speichern…" : "Änderungen speichern"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {rows.length === 0 ? (
-        <EmptyState title="No investors yet" description="Create the first investor to get started." />
+        <EmptyState title="Noch keine Investoren" description="Legen Sie den ersten Investor an, um zu starten." />
       ) : (
         <DataTable
           columns={columns}
           data={rows}
           searchKey="name"
-          searchPlaceholder="Search investors..."
+          searchPlaceholder="Investoren suchen..."
           showExport={false}
         />
       )}

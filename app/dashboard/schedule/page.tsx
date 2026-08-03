@@ -38,9 +38,9 @@ export default function InvestorSchedulePage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load schedule"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Zahlungsplan konnte nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -50,13 +50,13 @@ export default function InvestorSchedulePage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Payment Schedule</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Zahlungsplan</h1>
           <p className="text-sm text-muted-foreground">
-            Repayment calendar for the selected investment.
+            Rückzahlungskalender für die ausgewählte Investition.
           </p>
           {selectedInvestment ? (
             <p className="mt-1 text-sm text-muted-foreground">
-              Model:{" "}
+              Modell:{" "}
               <span className="font-medium text-foreground">
                 {formatRepaymentModel(selectedInvestment.repaymentModel)}
               </span>
@@ -70,7 +70,7 @@ export default function InvestorSchedulePage() {
               onValueChange={(v) => setSelectedId(v || investments[0]?.id || "")}
             >
               <SelectTrigger className="w-[240px]">
-                <SelectValue placeholder="Select investment" />
+                <SelectValue placeholder="Investition wählen" />
               </SelectTrigger>
               <SelectContent>
                 {investments.map((inv) => (
@@ -90,21 +90,21 @@ export default function InvestorSchedulePage() {
                 if (!effectiveId) return;
                 try {
                   await exportPaymentsFile(effectiveId, format);
-                  toast.success(`${format.toUpperCase()} downloaded`);
+                  toast.success(`${format.toUpperCase()} heruntergeladen`);
                 } catch {
-                  toast.error("Export failed");
+                  toast.error("Export fehlgeschlagen");
                 }
               }}
             >
-              Export {format.toUpperCase()}
+              {format.toUpperCase()} exportieren
             </Button>
           ))}
         </div>
       </div>
       {filteredPayments.length === 0 ? (
         <EmptyState
-          title="No payments yet"
-          description="Your repayment schedule will appear here."
+          title="Noch keine Zahlungen"
+          description="Ihr Rückzahlungsplan erscheint hier."
         />
       ) : (
         <DataTable

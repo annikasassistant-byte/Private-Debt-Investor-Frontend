@@ -52,6 +52,13 @@ const emptyForm = {
   startDate: new Date().toISOString().slice(0, 10),
 };
 
+const statusLabels: Record<string, string> = {
+  pending: "Ausstehend",
+  active: "Aktiv",
+  matured: "Fällig",
+  closed: "Geschlossen",
+};
+
 export default function AdminInvestmentsPage() {
   const { data: rows = [], isLoading, isError, refetch } = useGetInvestmentsQuery();
   const { data: investors = [] } = useGetInvestorsQuery();
@@ -81,23 +88,23 @@ export default function AdminInvestmentsPage() {
       { accessorKey: "investorName", header: "Investor" },
       {
         accessorKey: "principal",
-        header: "Principal",
+        header: "Hauptsumme",
         cell: ({ row }) => formatCurrency(row.original.principal),
       },
       {
         accessorKey: "interestRate",
-        header: "Financing Fee",
+        header: "Finanzierungsgebühr",
         cell: ({ row }) => `${row.original.interestRate}%`,
       },
       {
         accessorKey: "repaymentModel",
-        header: "Model",
+        header: "Modell",
         cell: ({ row }) => formatRepaymentModel(row.original.repaymentModel),
       },
-      { accessorKey: "termMonths", header: "Term (mo)" },
+      { accessorKey: "termMonths", header: "Laufzeit (Mon.)" },
       {
         accessorKey: "outstandingBalance",
-        header: "Outstanding",
+        header: "Offener Saldo",
         cell: ({ row }) => formatCurrency(row.original.outstandingBalance),
       },
       {
@@ -107,7 +114,7 @@ export default function AdminInvestmentsPage() {
       },
       {
         accessorKey: "maturityDate",
-        header: "Maturity",
+        header: "Fälligkeit",
         cell: ({ row }) => formatDate(row.original.maturityDate),
       },
       {
@@ -118,7 +125,7 @@ export default function AdminInvestmentsPage() {
             <Button
               variant="ghost"
               size="icon"
-              title="Edit"
+              title="Bearbeiten"
               onClick={() => {
                 const inv = row.original;
                 setEditing(inv);
@@ -139,7 +146,7 @@ export default function AdminInvestmentsPage() {
             <Button
               variant="ghost"
               size="icon"
-              title="Early repayment"
+              title="Vorzeitige Rückzahlung"
               onClick={() => {
                 setEditing(row.original);
                 setEarlyForm({
@@ -155,13 +162,13 @@ export default function AdminInvestmentsPage() {
             <Button
               variant="ghost"
               size="icon"
-              title="Regenerate schedule"
+              title="Tilgungsplan neu erzeugen"
               onClick={async () => {
                 try {
                   await regenerateSchedule(row.original.id).unwrap();
-                  toast.success("Schedule regenerated");
+                  toast.success("Tilgungsplan neu erzeugt");
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to regenerate"));
+                  toast.error(getApiErrorMessage(error, "Konnte nicht neu erzeugt werden"));
                 }
               }}
             >
@@ -173,9 +180,9 @@ export default function AdminInvestmentsPage() {
               onClick={async () => {
                 try {
                   await deleteInvestment(row.original.id).unwrap();
-                  toast.success("Investment removed");
+                  toast.success("Investition entfernt");
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to delete"));
+                  toast.error(getApiErrorMessage(error, "Konnte nicht gelöscht werden"));
                 }
               }}
             >
@@ -192,9 +199,9 @@ export default function AdminInvestmentsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load investments"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Investitionen konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -204,19 +211,19 @@ export default function AdminInvestmentsPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Investments</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Investitionen</h1>
           <p className="text-sm text-muted-foreground">
-            Create positions and manage repayment schedules.
+            Positionen anlegen und Tilgungspläne verwalten.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={cn(buttonVariants())}>
             <Plus className="mr-2 h-4 w-4" />
-            Create investment
+            Investition anlegen
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create investment</DialogTitle>
+              <DialogTitle>Investition anlegen</DialogTitle>
             </DialogHeader>
             <div className="grid gap-3 py-2">
               <div className="space-y-2">
@@ -226,7 +233,7 @@ export default function AdminInvestmentsPage() {
                   onValueChange={(v) => setForm((f) => ({ ...f, investorId: v || "" }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select investor" />
+                    <SelectValue placeholder="Investor auswählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {investors.map((inv) => (
@@ -239,12 +246,12 @@ export default function AdminInvestmentsPage() {
               </div>
               {(
                 [
-                  ["principal", "Principal"],
-                  ["interestRate", "Financing Fee (%)"],
-                  ["termMonths", "Term (months)"],
-                  ["paymentDay", "Payment day (1–31)"],
-                  ["startDate", "Start date"],
-                  ["borrower", "Borrower (optional — creates loan)"],
+                  ["principal", "Hauptsumme"],
+                  ["interestRate", "Finanzierungsgebühr (%)"],
+                  ["termMonths", "Laufzeit (Monate)"],
+                  ["paymentDay", "Zahlungstag (1–31)"],
+                  ["startDate", "Startdatum"],
+                  ["borrower", "Kreditnehmer (optional — legt Kredit an)"],
                 ] as const
               ).map(([key, label]) => (
                 <div key={key} className="space-y-2">
@@ -257,7 +264,7 @@ export default function AdminInvestmentsPage() {
                 </div>
               ))}
               <div className="space-y-2">
-                <Label>Repayment model</Label>
+                <Label>Rückzahlungsmodell</Label>
                 <Select
                   value={form.repaymentModel}
                   onValueChange={(v) =>
@@ -292,15 +299,15 @@ export default function AdminInvestmentsPage() {
                       startDate: form.startDate,
                       ...(form.borrower ? { borrower: form.borrower } : {}),
                     }).unwrap();
-                    toast.success("Investment created");
+                    toast.success("Investition angelegt");
                     setOpen(false);
                     setForm(emptyForm);
                   } catch (error) {
-                    toast.error(getApiErrorMessage(error, "Unable to create investment"));
+                    toast.error(getApiErrorMessage(error, "Investition konnte nicht angelegt werden"));
                   }
                 }}
               >
-                {creating ? "Saving…" : "Save"}
+                {creating ? "Speichern…" : "Speichern"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -310,15 +317,15 @@ export default function AdminInvestmentsPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit investment</DialogTitle>
+            <DialogTitle>Investition bearbeiten</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             {(
               [
-                ["principal", "Principal"],
-                ["interestRate", "Financing Fee (%)"],
-                ["termMonths", "Term (months)"],
-                ["paymentDay", "Payment day (1–31)"],
+                ["principal", "Hauptsumme"],
+                ["interestRate", "Finanzierungsgebühr (%)"],
+                ["termMonths", "Laufzeit (Monate)"],
+                ["paymentDay", "Zahlungstag (1–31)"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="space-y-2">
@@ -331,7 +338,7 @@ export default function AdminInvestmentsPage() {
               </div>
             ))}
             <div className="space-y-2">
-              <Label>Repayment model</Label>
+              <Label>Rückzahlungsmodell</Label>
               <Select
                 value={editForm.repaymentModel}
                 onValueChange={(v) =>
@@ -362,14 +369,14 @@ export default function AdminInvestmentsPage() {
                 <SelectContent>
                   {["pending", "active", "matured", "closed"].map((s) => (
                     <SelectItem key={s} value={s}>
-                      {s}
+                      {statusLabels[s] || s}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              Changing principal, rate, term, payment day, or model regenerates unpaid schedule rows.
+              Änderungen an Hauptsumme, Satz, Laufzeit, Zahlungstag oder Modell erzeugen unbezahlte Planzeilen neu.
             </p>
           </div>
           <DialogFooter>
@@ -389,15 +396,15 @@ export default function AdminInvestmentsPage() {
                       status: editForm.status,
                     },
                   }).unwrap();
-                  toast.success("Investment updated");
+                  toast.success("Investition aktualisiert");
                   setEditOpen(false);
                   setEditing(null);
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to update"));
+                  toast.error(getApiErrorMessage(error, "Konnte nicht aktualisiert werden"));
                 }
               }}
             >
-              {updating ? "Saving…" : "Save changes"}
+              {updating ? "Speichern…" : "Änderungen speichern"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -406,14 +413,14 @@ export default function AdminInvestmentsPage() {
       <Dialog open={earlyOpen} onOpenChange={setEarlyOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Early repayment</DialogTitle>
+            <DialogTitle>Vorzeitige Rückzahlung</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <p className="text-sm text-muted-foreground">
-              Outstanding: {editing ? formatCurrency(editing.outstandingBalance) : "—"}
+              Offener Saldo: {editing ? formatCurrency(editing.outstandingBalance) : "—"}
             </p>
             <div className="space-y-2">
-              <Label>Amount</Label>
+              <Label>Betrag</Label>
               <Input
                 type="number"
                 value={earlyForm.amount}
@@ -421,7 +428,7 @@ export default function AdminInvestmentsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Financing Fee portion (optional)</Label>
+              <Label>Anteil Finanzierungsgebühr (optional)</Label>
               <Input
                 type="number"
                 value={earlyForm.interestPortion}
@@ -429,7 +436,7 @@ export default function AdminInvestmentsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>Notizen</Label>
               <Input
                 value={earlyForm.notes}
                 onChange={(e) => setEarlyForm((f) => ({ ...f, notes: e.target.value }))}
@@ -452,15 +459,15 @@ export default function AdminInvestmentsPage() {
                       ...(earlyForm.notes ? { notes: earlyForm.notes } : {}),
                     },
                   }).unwrap();
-                  toast.success("Early repayment applied");
+                  toast.success("Vorzeitige Rückzahlung verbucht");
                   setEarlyOpen(false);
                   setEditing(null);
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Unable to apply early repayment"));
+                  toast.error(getApiErrorMessage(error, "Vorzeitige Rückzahlung konnte nicht verbucht werden"));
                 }
               }}
             >
-              {repaying ? "Applying…" : "Apply repayment"}
+              {repaying ? "Wird verbucht…" : "Rückzahlung verbuchen"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -468,8 +475,8 @@ export default function AdminInvestmentsPage() {
 
       {rows.length === 0 ? (
         <EmptyState
-          title="No investments yet"
-          description="Create the first investment to generate a repayment schedule."
+          title="Noch keine Investitionen"
+          description="Legen Sie die erste Investition an, um einen Tilgungsplan zu erzeugen."
         />
       ) : (
         <DataTable

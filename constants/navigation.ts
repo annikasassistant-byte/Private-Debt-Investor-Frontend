@@ -30,27 +30,27 @@ export interface NavGroup {
 export const adminNavGroups: NavGroup[] = [
   {
     items: [
-      { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-      { title: "Investors", href: "/admin/investors", icon: Users },
-      { title: "Investments", href: "/admin/investments", icon: TrendingUp },
-      { title: "Loans", href: "/admin/loans", icon: Landmark },
-      { title: "Payments", href: "/admin/payments", icon: CreditCard },
-      { title: "Repayment Schedule", href: "/admin/repayment-schedule", icon: Calendar },
-      { title: "Timeline", href: "/admin/timeline", icon: Clock },
+      { title: "Übersicht", href: "/admin/dashboard", icon: LayoutDashboard },
+      { title: "Investoren", href: "/admin/investors", icon: Users },
+      { title: "Investitionen", href: "/admin/investments", icon: TrendingUp },
+      { title: "Kredite", href: "/admin/loans", icon: Landmark },
+      { title: "Zahlungen", href: "/admin/payments", icon: CreditCard },
+      { title: "Rückzahlungsplan", href: "/admin/repayment-schedule", icon: Calendar },
+      { title: "Zeitachse", href: "/admin/timeline", icon: Clock },
     ],
   },
   {
-    label: "Reports & Documents",
+    label: "Berichte & Dokumente",
     items: [
-      { title: "Financial Reports", href: "/admin/reports", icon: FileText },
-      { title: "Contracts", href: "/admin/contracts", icon: FileSignature },
+      { title: "Finanzberichte", href: "/admin/reports", icon: FileText },
+      { title: "Verträge", href: "/admin/contracts", icon: FileSignature },
     ],
   },
   {
     items: [
-      { title: "Notifications", href: "/admin/notifications", icon: Bell },
-      { title: "Settings", href: "/admin/settings", icon: Settings },
-      { title: "Profile", href: "/admin/profile", icon: User },
+      { title: "Benachrichtigungen", href: "/admin/notifications", icon: Bell },
+      { title: "Einstellungen", href: "/admin/settings", icon: Settings },
+      { title: "Profil", href: "/admin/profile", icon: User },
     ],
   },
 ];
@@ -58,23 +58,23 @@ export const adminNavGroups: NavGroup[] = [
 export const investorNavGroups: NavGroup[] = [
   {
     items: [
-      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { title: "My Investment", href: "/dashboard/investment", icon: Wallet },
-      { title: "Payment Timeline", href: "/dashboard/timeline", icon: Clock },
-      { title: "Payment Schedule", href: "/dashboard/schedule", icon: Calendar },
+      { title: "Übersicht", href: "/dashboard", icon: LayoutDashboard },
+      { title: "Meine Investitionen", href: "/dashboard/investment", icon: Wallet },
+      { title: "Zahlungszeitachse", href: "/dashboard/timeline", icon: Clock },
+      { title: "Zahlungsplan", href: "/dashboard/schedule", icon: Calendar },
     ],
   },
   {
-    label: "Reports & Documents",
+    label: "Berichte & Dokumente",
     items: [
-      { title: "Financial Reports", href: "/dashboard/reports", icon: FileText },
-      { title: "Contracts", href: "/dashboard/contracts", icon: FileSignature },
+      { title: "Finanzberichte", href: "/dashboard/reports", icon: FileText },
+      { title: "Verträge", href: "/dashboard/contracts", icon: FileSignature },
     ],
   },
   {
     items: [
-      { title: "Profile", href: "/dashboard/profile", icon: User },
-      { title: "Settings", href: "/dashboard/settings", icon: Settings },
+      { title: "Profil", href: "/dashboard/profile", icon: User },
+      { title: "Einstellungen", href: "/dashboard/settings", icon: Settings },
     ],
   },
 ];

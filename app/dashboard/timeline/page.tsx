@@ -33,18 +33,18 @@ export default function InvestorTimelinePage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Payment Timeline</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Zahlungszeitachse</h1>
           <p className="text-sm text-muted-foreground">
-            Chronological view of your investment events.
+            Chronologische Ansicht Ihrer Investitionsereignisse.
           </p>
         </div>
         {investments.length > 1 ? (
           <Select value={selectedId} onValueChange={(v) => setSelectedId(v || "all")}>
             <SelectTrigger className="w-[240px]">
-              <SelectValue placeholder="Investment" />
+              <SelectValue placeholder="Investition" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All investments</SelectItem>
+              <SelectItem value="all">Alle Investitionen</SelectItem>
               {investments.map((inv) => (
                 <SelectItem key={inv.id} value={inv.id}>
                   {formatCurrency(inv.principal)} · {formatRepaymentModel(inv.repaymentModel)}
@@ -56,8 +56,8 @@ export default function InvestorTimelinePage() {
       </div>
       {filtered.length === 0 ? (
         <EmptyState
-          title="No events yet"
-          description="Timeline updates as payments are scheduled and completed."
+          title="Noch keine Ereignisse"
+          description="Die Zeitachse aktualisiert sich, wenn Zahlungen geplant und abgeschlossen werden."
         />
       ) : (
         <Timeline events={filtered} autoScrollToUpcoming />

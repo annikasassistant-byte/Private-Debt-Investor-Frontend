@@ -21,13 +21,13 @@ const schema = z
   .object({
     password: z
       .string()
-      .min(8, "At least 8 characters")
-      .regex(/[A-Za-z]/, "Must include a letter")
-      .regex(/[0-9]/, "Must include a number"),
+      .min(8, "Mindestens 8 Zeichen")
+      .regex(/[A-Za-z]/, "Muss einen Buchstaben enthalten")
+      .regex(/[0-9]/, "Muss eine Zahl enthalten"),
     confirm: z.string(),
   })
   .refine((d) => d.password === d.confirm, {
-    message: "Passwords must match",
+    message: "Passwörter müssen übereinstimmen",
     path: ["confirm"],
   });
 
@@ -67,8 +67,8 @@ function ResetPasswordForm() {
   return (
     <AuthFlowShell
       step={3}
-      title="Create new password"
-      description="Choose a strong password. You'll use it the next time you sign in."
+      title="Neues Passwort festlegen"
+      description="Wählen Sie ein starkes Passwort. Sie verwenden es bei der nächsten Anmeldung."
     >
       <form
         className="space-y-5"
@@ -79,10 +79,10 @@ function ResetPasswordForm() {
               password: values.password,
             }).unwrap();
             clearPasswordResetFlow();
-            toast.success("Password updated");
+            toast.success("Passwort aktualisiert");
             router.push("/login");
           } catch (error) {
-            toast.error(getApiErrorMessage(error, "Unable to reset password"));
+            toast.error(getApiErrorMessage(error, "Passwort konnte nicht zurückgesetzt werden"));
           }
         })}
       >
@@ -91,7 +91,7 @@ function ResetPasswordForm() {
             htmlFor="password"
             className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
-            New password
+            Neues Passwort
           </Label>
           <PasswordInput id="password" className="h-11 rounded-xl" {...register("password")} />
           {errors.password && (
@@ -103,7 +103,7 @@ function ResetPasswordForm() {
             htmlFor="confirm"
             className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
-            Confirm password
+            Passwort bestätigen
           </Label>
           <PasswordInput id="confirm" className="h-11 rounded-xl" {...register("confirm")} />
           {errors.confirm && (
@@ -111,13 +111,13 @@ function ResetPasswordForm() {
           )}
         </div>
         <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
-          {isLoading ? "Updating…" : "Update password"}
+          {isLoading ? "Wird aktualisiert…" : "Passwort aktualisieren"}
         </Button>
         <Link
           href="/login"
           className={cn(buttonVariants({ variant: "ghost" }), "w-full rounded-xl")}
         >
-          Back to sign in
+          Zurück zur Anmeldung
         </Link>
       </form>
     </AuthFlowShell>

@@ -25,7 +25,7 @@ export function InvestorMultiSelect({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between gap-2">
-        <Label>Assign to investors</Label>
+        <Label>Investoren zuweisen</Label>
         {investors.length > 0 && (
           <button
             type="button"
@@ -36,13 +36,13 @@ export function InvestorMultiSelect({
               )
             }
           >
-            {selectedIds.length === investors.length ? "Clear all" : "Select all"}
+            {selectedIds.length === investors.length ? "Alle abwählen" : "Alle auswählen"}
           </button>
         )}
       </div>
       <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-border/50 p-3">
         {investors.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No investors available.</p>
+          <p className="text-xs text-muted-foreground">Keine Investoren verfügbar.</p>
         ) : (
           investors.map((inv) => {
             const checked = selectedIds.includes(inv.id);
@@ -62,7 +62,7 @@ export function InvestorMultiSelect({
         )}
       </div>
       <p className="text-[11px] text-muted-foreground">
-        {selectedIds.length} selected · multi-assign supported
+        {selectedIds.length} ausgewählt · Mehrfachzuweisung möglich
       </p>
     </div>
   );

@@ -12,21 +12,21 @@ export default function UnauthorizedPage() {
       </div>
       <div className="max-w-md space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-destructive">403</p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Access denied</h1>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Zugriff verweigert</h1>
         <p className="text-base leading-relaxed text-muted-foreground">
-          You don&apos;t have permission to view this page. Investors can only access personal
-          portfolio data.
+          Sie haben keine Berechtigung, diese Seite anzuzeigen. Investoren können nur auf
+          persönliche Portfoliodaten zugreifen.
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         <Link href="/dashboard" className={cn(buttonVariants(), "rounded-xl px-6")}>
-          Go to dashboard
+          Zum Dashboard
         </Link>
         <Link
           href="/login"
           className={cn(buttonVariants({ variant: "outline" }), "rounded-xl px-6")}
         >
-          Sign in
+          Anmelden
         </Link>
       </div>
     </div>

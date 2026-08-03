@@ -44,7 +44,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     socket.on(PAYMENT_EVT, () => {
       invalidate();
-      toast.message("Payment update received");
+      toast.message("Zahlungsaktualisierung empfangen");
     });
     socket.on(TIMELINE_EVT, () => {
       invalidate();

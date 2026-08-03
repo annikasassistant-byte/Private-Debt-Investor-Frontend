@@ -33,9 +33,9 @@ export default function InvestorDashboardPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load dashboard"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Dashboard konnte nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -54,12 +54,12 @@ export default function InvestorDashboardPage() {
         <PageHeader
           hero
           eyebrow="Portfolio"
-          title="Your investment at a glance"
-          description="Overview of your private debt allocation, cash flows, and upcoming obligations."
+          title="Ihre Investition im Überblick"
+          description="Überblick über Ihre Private-Debt-Allokation, Cashflows und anstehenden Verpflichtungen."
         />
         <EmptyState
-          title="No investment yet"
-          description="Your administrator has not assigned an investment to your account."
+          title="Noch keine Investition"
+          description="Ihr Administrator hat Ihrem Konto noch keine Investition zugewiesen."
         />
       </div>
     );
@@ -93,40 +93,40 @@ export default function InvestorDashboardPage() {
       <PageHeader
         hero
         eyebrow="Portfolio"
-        title="Your investment at a glance"
-        description="Overview of your private debt allocation, cash flows, and upcoming obligations."
+        title="Ihre Investition im Überblick"
+        description="Überblick über Ihre Private-Debt-Allokation, Cashflows und anstehenden Verpflichtungen."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <MetricCard
-          title="Investment Amount"
+          title="Investitionsbetrag"
           value={formatCurrency(investmentAmount)}
           icon={Wallet}
           delay={0}
         />
         <MetricCard
-          title="Outstanding Balance"
+          title="Ausstehender Saldo"
           value={formatCurrency(outstandingBalance)}
           icon={CircleDollarSign}
           delay={0.05}
         />
         <MetricCard
-          title="Financing Fee Earned"
+          title="Verdiente Finanzierungsgebühr"
           value={formatCurrency(interestEarned)}
           icon={TrendingUp}
           delay={0.1}
         />
         <MetricCard
-          title="Principal Repaid"
+          title="Tilgung geleistet"
           value={formatCurrency(principalRepaid)}
           icon={PiggyBank}
           delay={0.15}
         />
         <MetricCard
-          title="Total Repayments"
+          title="Gesamtrückzahlungen"
           value={formatCurrency(totalRepaid)}
           icon={Calendar}
-          subtitle={`${investments.length} investment${investments.length === 1 ? "" : "s"}`}
+          subtitle={`${investments.length} Investition${investments.length === 1 ? "" : "en"}`}
           delay={0.2}
         />
       </div>
@@ -137,25 +137,25 @@ export default function InvestorDashboardPage() {
           style={{ boxShadow: "var(--shadow-card)" }}
         >
           <CardHeader className="border-b border-border/30 bg-muted/15">
-            <CardTitle className="text-base font-semibold">Portfolio summary</CardTitle>
+            <CardTitle className="text-base font-semibold">Portfolioübersicht</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-5 text-sm">
             {[
-              ["Investments", String(stats?.investmentCount ?? investments.length)],
-              ["Next payment", formatCurrency(Number(nextPaymentAmount))],
+              ["Investitionen", String(stats?.investmentCount ?? investments.length)],
+              ["Nächste Zahlung", formatCurrency(Number(nextPaymentAmount))],
               [
-                "Due date",
+                "Fälligkeitsdatum",
                 nextPaymentDate ? formatDate(String(nextPaymentDate)) : "—",
               ],
               [
-                "Upcoming payments",
+                "Anstehende Zahlungen",
                 String(stats?.upcomingPaymentCount ?? "—"),
               ],
               [
-                "Maturity",
+                "Fälligkeit",
                 maturityDate ? formatDate(String(maturityDate)) : "—",
               ],
-              ["Returned amount", formatCurrency(totalRepaid)],
+              ["Zurückgezahlter Betrag", formatCurrency(totalRepaid)],
             ].map(([label, val]) => (
               <div key={String(label)} className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">{label}</span>
@@ -165,7 +165,7 @@ export default function InvestorDashboardPage() {
           </CardContent>
         </Card>
         <div className="lg:col-span-2">
-          <ChartCard title="Outstanding balance" description="Portfolio balance trend over time">
+          <ChartCard title="Ausstehender Saldo" description="Portfolio-Saldoentwicklung im Zeitverlauf">
             <BalanceLineChart data={chartPayments} />
           </ChartCard>
         </div>
@@ -173,8 +173,8 @@ export default function InvestorDashboardPage() {
 
       <div className="space-y-3">
         <SectionHeader
-          title="Your investments"
-          description="Each position has its own schedule, payments, and timeline."
+          title="Ihre Investitionen"
+          description="Jede Position hat eigenen Plan, Zahlungen und Zeitachse."
         />
         <div className="grid gap-4 md:grid-cols-2">
           {investments.map((inv) => {
@@ -194,21 +194,21 @@ export default function InvestorDashboardPage() {
                 </CardHeader>
                 <CardContent className="grid gap-2 p-4 text-sm sm:grid-cols-2">
                   <div>
-                    <p className="text-muted-foreground">Repayment model</p>
+                    <p className="text-muted-foreground">Rückzahlungsmodell</p>
                     <p className="font-medium">{formatRepaymentModel(inv.repaymentModel)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Financing Fee</p>
+                    <p className="text-muted-foreground">Finanzierungsgebühr</p>
                     <p className="font-medium">{inv.interestRate}% p.a.</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Outstanding</p>
+                    <p className="text-muted-foreground">Ausstehend</p>
                     <p className="font-medium tabular-financial">
                       {formatCurrency(inv.outstandingBalance)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Next payment</p>
+                    <p className="text-muted-foreground">Nächste Zahlung</p>
                     <p className="font-medium tabular-financial">
                       {formatCurrency(inv.nextPaymentAmount)}
                     </p>
@@ -221,8 +221,8 @@ export default function InvestorDashboardPage() {
       </div>
 
       <ChartCard
-        title="Principal vs financing fee"
-        description="Monthly repayment composition"
+        title="Tilgung vs. Finanzierungsgebühr"
+        description="Monatliche Rückzahlungszusammensetzung"
         delay={0.1}
       >
         <PrincipalInterestChart data={chartPayments} />
@@ -236,7 +236,7 @@ export default function InvestorDashboardPage() {
           <CardHeader className="border-b border-border/30 bg-muted/15">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <Calendar className="h-4 w-4 text-primary" />
-              Recent payments
+              Letzte Zahlungen
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-4">
@@ -248,7 +248,7 @@ export default function InvestorDashboardPage() {
                 <div>
                   <p className="font-medium">{formatDate(p.dueDate)}</p>
                   <p className="text-xs text-muted-foreground">
-                    Principal {formatCurrency(p.principal)} · Financing Fee{" "}
+                    Tilgung {formatCurrency(p.principal)} · Finanzierungsgebühr{" "}
                     {formatCurrency(p.interest)}
                   </p>
                 </div>
@@ -264,7 +264,7 @@ export default function InvestorDashboardPage() {
           className="rounded-2xl border border-border/40 bg-card/50 p-5"
           style={{ boxShadow: "var(--shadow-card)" }}
         >
-          <SectionHeader title="Timeline preview" description="Latest investment events" />
+          <SectionHeader title="Zeitachsen-Vorschau" description="Neueste Investitionsereignisse" />
           <div className="mt-6 max-h-[380px] overflow-auto pr-1">
             <Timeline events={timeline} />
           </div>

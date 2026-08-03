@@ -34,6 +34,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const categoryLabels: Record<string, string> = {
+  monthly: "Monatlich",
+  quarterly: "Quartalsweise",
+  annual: "Jährlich",
+  kpi: "KPI",
+  other: "Sonstiges",
+};
+
 export default function AdminReportsPage() {
   const { data: reports = [], isLoading, isError, refetch } = useGetReportsQuery();
   const { data: investors = [] } = useGetInvestorsQuery();
@@ -50,9 +58,9 @@ export default function AdminReportsPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load reports"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Berichte konnten nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -62,23 +70,23 @@ export default function AdminReportsPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Financial Reports</h1>
-          <p className="text-sm text-muted-foreground">Upload and assign reports to investors.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Finanzberichte</h1>
+          <p className="text-sm text-muted-foreground">Berichte hochladen und Investoren zuweisen.</p>
         </div>
         <button type="button" className={cn(buttonVariants())} onClick={() => setOpen(true)}>
           <Upload className="mr-2 h-4 w-4" />
-          Upload report
+          Bericht hochladen
         </button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload report</DialogTitle>
+            <DialogTitle>Bericht hochladen</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div className="space-y-2">
-              <Label>File</Label>
+              <Label>Datei</Label>
               <Input
                 type="file"
                 accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
@@ -90,11 +98,11 @@ export default function AdminReportsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Title</Label>
+              <Label>Titel</Label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>Kategorie</Label>
               <Select value={category} onValueChange={(v) => setCategory(v || "other")}>
                 <SelectTrigger>
                   <SelectValue />
@@ -102,16 +110,16 @@ export default function AdminReportsPage() {
                 <SelectContent>
                   {["monthly", "quarterly", "annual", "kpi", "other"].map((c) => (
                     <SelectItem key={c} value={c}>
-                      {c}
+                      {categoryLabels[c] || c}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Period</Label>
+              <Label>Zeitraum</Label>
               <Input
-                placeholder="e.g. Q1 2026"
+                placeholder="z. B. Q1 2026"
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
               />
@@ -137,25 +145,25 @@ export default function AdminReportsPage() {
                 }
                 try {
                   await createReport(fd).unwrap();
-                  toast.success("Report uploaded");
+                  toast.success("Bericht hochgeladen");
                   setOpen(false);
                   setFile(null);
                   setTitle("");
                   setPeriod("");
                   setInvestorIds([]);
                 } catch (error) {
-                  toast.error(getApiErrorMessage(error, "Upload failed"));
+                  toast.error(getApiErrorMessage(error, "Upload fehlgeschlagen"));
                 }
               }}
             >
-              {uploading ? "Uploading…" : "Upload"}
+              {uploading ? "Wird hochgeladen…" : "Hochladen"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {reports.length === 0 ? (
-        <EmptyState title="No reports" description="Upload the first financial report." />
+        <EmptyState title="Keine Berichte" description="Laden Sie den ersten Finanzbericht hoch." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {reports.map((r) => (
@@ -163,11 +171,11 @@ export default function AdminReportsPage() {
               key={r.id}
               title={r.title}
               meta={`${r.period || "—"} · ${r.size}`}
-              badge={r.category}
+              badge={categoryLabels[r.category] || r.category}
               downloadPath={`/reports/${r.id}/download`}
               onDelete={async () => {
                 await deleteReport(r.id).unwrap();
-                toast.success("Report deleted");
+                toast.success("Bericht gelöscht");
               }}
             />
           ))}

@@ -3,9 +3,9 @@ import { Layers } from "lucide-react";
 import Link from "next/link";
 
 const steps = [
-  { id: 1, label: "Email" },
-  { id: 2, label: "Verify OTP" },
-  { id: 3, label: "New password" },
+  { id: 1, label: "E-Mail" },
+  { id: 2, label: "OTP prüfen" },
+  { id: 3, label: "Neues Passwort" },
 ] as const;
 
 export function AuthFlowShell({
@@ -27,7 +27,7 @@ export function AuthFlowShell({
           <span className="text-sm font-semibold">Depth Capital</span>
         </Link>
 
-        <nav aria-label="Password reset progress" className="mb-8">
+        <nav aria-label="Fortschritt Passwort-Zurücksetzung" className="mb-8">
           <ol className="flex items-center justify-between gap-2">
             {steps.map((s, i) => {
               const done = s.id < step;

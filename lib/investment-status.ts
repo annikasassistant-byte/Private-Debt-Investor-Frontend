@@ -9,11 +9,11 @@ export type InvestmentDisplayStatus =
   | "overdue";
 
 const DISPLAY_LABELS: Record<InvestmentDisplayStatus, string> = {
-  active: "Active",
-  repayment_in_progress: "Repayment in Progress",
-  fully_repaid: "Fully Repaid",
-  payment_due: "Payment Due",
-  overdue: "Overdue",
+  active: "Aktiv",
+  repayment_in_progress: "Rückzahlung läuft",
+  fully_repaid: "Vollständig zurückgezahlt",
+  payment_due: "Zahlung fällig",
+  overdue: "Überfällig",
 };
 
 /**
@@ -56,9 +56,25 @@ export function investmentDisplayLabel(status: InvestmentDisplayStatus): string 
   return DISPLAY_LABELS[status] || status;
 }
 
-/** Map payment API status to client vocabulary (Paid vs completed). */
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  completed: "Bezahlt",
+  paid: "Bezahlt",
+  partially_paid: "Teilweise bezahlt",
+  upcoming: "Bevorstehend",
+  scheduled: "Geplant",
+  future: "Zukünftig",
+  overdue: "Überfällig",
+  cancelled: "Storniert",
+  pending: "Ausstehend",
+  active: "Aktiv",
+  inactive: "Inaktiv",
+  matured: "Fällig gestellt",
+  closed: "Geschlossen",
+};
+
+/** Map payment API status to German client vocabulary. */
 export function paymentDisplayLabel(status: PaymentStatus | string): string {
-  if (status === "completed") return "Paid";
-  if (status === "partially_paid") return "Partially Paid";
-  return String(status).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const key = String(status);
+  if (PAYMENT_STATUS_LABELS[key]) return PAYMENT_STATUS_LABELS[key];
+  return key.replace(/_/g, " ");
 }

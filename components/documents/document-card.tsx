@@ -68,37 +68,37 @@ export function DocumentCard({
             className="flex-1 rounded-xl border-border/60"
             onClick={async () => {
               if (!downloadPath) {
-                toast.message("No file available");
+                toast.message("Keine Datei verfügbar");
                 return;
               }
               try {
                 await previewAuthenticatedFile(downloadPath);
               } catch {
-                toast.error("Unable to preview file");
+                toast.error("Vorschau nicht möglich");
               }
             }}
           >
             <Eye className="mr-2 h-4 w-4" />
-            Preview
+            Vorschau
           </Button>
           <Button
             size="sm"
             className="flex-1 rounded-xl"
             onClick={async () => {
               if (!downloadPath) {
-                toast.message("No file available");
+                toast.message("Keine Datei verfügbar");
                 return;
               }
               try {
                 await downloadAuthenticatedFile(downloadPath, title);
-                toast.success("Download started");
+                toast.success("Download gestartet");
               } catch {
-                toast.error("Download failed");
+                toast.error("Download fehlgeschlagen");
               }
             }}
           >
             <Download className="mr-2 h-4 w-4" />
-            Download
+            Herunterladen
           </Button>
           {onDelete && (
             <Button
@@ -109,7 +109,7 @@ export function DocumentCard({
                 try {
                   await onDelete();
                 } catch {
-                  toast.error("Delete failed");
+                  toast.error("Löschen fehlgeschlagen");
                 }
               }}
             >

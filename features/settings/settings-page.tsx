@@ -21,10 +21,10 @@ import { getApiErrorMessage } from "@/services/auth-mappers";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 
 const PREF_FIELDS = [
-  { key: "paymentConfirmations", label: "Payment confirmations" },
-  { key: "upcomingDueDates", label: "Upcoming due dates" },
-  { key: "newReports", label: "New reports" },
-  { key: "platformAnnouncements", label: "Platform announcements" },
+  { key: "paymentConfirmations", label: "Zahlungsbestätigungen" },
+  { key: "upcomingDueDates", label: "Anstehende Fälligkeiten" },
+  { key: "newReports", label: "Neue Berichte" },
+  { key: "platformAnnouncements", label: "Plattform-Mitteilungen" },
 ] as const;
 
 type PrefKey = (typeof PREF_FIELDS)[number]["key"];
@@ -56,24 +56,24 @@ export function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Appearance and notification preferences.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Einstellungen</h1>
+        <p className="text-sm text-muted-foreground">Darstellung und Benachrichtigungseinstellungen.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize how the portal looks on your device.</CardDescription>
+          <CardTitle>Darstellung</CardTitle>
+          <CardDescription>Passen Sie das Erscheinungsbild des Portals an.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Theme</Label>
+            <Label>Design</Label>
             <Select value={theme} onValueChange={(v) => v && setTheme(v)}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Theme" />
+                <SelectValue placeholder="Design" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="light">Hell</SelectItem>
+                <SelectItem value="dark">Dunkel</SelectItem>
                 <SelectItem value="system">System</SelectItem>
               </SelectContent>
             </Select>
@@ -82,8 +82,8 @@ export function SettingsPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>Saved to your account on the server.</CardDescription>
+          <CardTitle>Benachrichtigungen</CardTitle>
+          <CardDescription>Werden auf dem Server in Ihrem Konto gespeichert.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {PREF_FIELDS.map(({ key, label }) => (
@@ -98,10 +98,10 @@ export function SettingsPage() {
                   setPrefs(next);
                   try {
                     await updatePrefs(next).unwrap();
-                    toast.success("Preference saved");
+                    toast.success("Einstellung gespeichert");
                   } catch (error) {
                     setPrefs(prefs);
-                    toast.error(getApiErrorMessage(error, "Unable to save preference"));
+                    toast.error(getApiErrorMessage(error, "Einstellung konnte nicht gespeichert werden"));
                   }
                 }}
               />

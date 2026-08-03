@@ -43,7 +43,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
     <div className="flex flex-1 items-center justify-between gap-4">
       <div className="hidden min-w-0 sm:block">
         <p className="truncate text-sm text-muted-foreground">
-          Welcome back,{" "}
+          Willkommen zurück,{" "}
           <span className="font-semibold text-foreground">{user?.name}</span>
         </p>
       </div>
@@ -54,7 +54,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
           size="icon"
           className="relative h-9 w-9 rounded-xl"
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={isDark ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
         >
           <Sun
             className={`h-4 w-4 transition-all ${isDark ? "scale-0 opacity-0" : "scale-100 opacity-100"}`}
@@ -69,7 +69,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
               buttonVariants({ variant: "ghost" }),
               "relative h-9 w-9 rounded-full p-0"
             )}
-            aria-label="Account menu"
+            aria-label="Kontomenü"
           >
             <Avatar className="h-9 w-9 ring-2 ring-border/60 ring-offset-2 ring-offset-background">
               <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-xs font-bold text-primary">
@@ -87,7 +87,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push(profileHref)} className="rounded-lg">
               <User className="mr-2 h-4 w-4" />
-              Profile
+              Profil
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -95,7 +95,7 @@ export function TopNavbar({ profileHref }: { profileHref: string }) {
               onClick={() => void handleLogout()}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              Abmelden
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

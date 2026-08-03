@@ -1,10 +1,10 @@
 /** Display helpers for repayment models (UI labels only). */
 
 const MODEL_LABELS: Record<string, string> = {
-  amortizing: "Amortizing",
-  interest_only: "Financing Fee Only",
+  amortizing: "Annuitätisch",
+  interest_only: "Nur Finanzierungsgebühr",
   bullet: "Bullet",
-  fixed_monthly_payment: "Fixed Monthly Payment",
+  fixed_monthly_payment: "Feste Monatsrate",
 };
 
 export function formatRepaymentModel(model?: string | null) {
@@ -13,8 +13,8 @@ export function formatRepaymentModel(model?: string | null) {
 }
 
 export const REPAYMENT_MODEL_OPTIONS = [
-  { value: "amortizing", label: "Amortizing" },
-  { value: "interest_only", label: "Financing Fee Only" },
+  { value: "amortizing", label: "Annuitätisch" },
+  { value: "interest_only", label: "Nur Finanzierungsgebühr" },
   { value: "bullet", label: "Bullet" },
-  { value: "fixed_monthly_payment", label: "Fixed Monthly Payment" },
+  { value: "fixed_monthly_payment", label: "Feste Monatsrate" },
 ] as const;

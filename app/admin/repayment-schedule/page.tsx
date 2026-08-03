@@ -33,9 +33,9 @@ export default function AdminRepaymentSchedulePage() {
   if (isError) {
     return (
       <EmptyState
-        title="Unable to load schedule"
-        description="Check your connection and try again."
-        actionLabel="Retry"
+        title="Tilgungsplan konnte nicht geladen werden"
+        description="Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+        actionLabel="Erneut versuchen"
         onAction={() => refetch()}
       />
     );
@@ -45,13 +45,13 @@ export default function AdminRepaymentSchedulePage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Repayment Schedule</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Tilgungsplan</h1>
           <p className="text-sm text-muted-foreground">
-            Schedule rows follow each investment&apos;s repayment model.
+            Planzeilen richten sich nach dem Rückzahlungsmodell jeder Investition.
           </p>
           {selectedInvestment ? (
             <p className="mt-1 text-sm text-muted-foreground">
-              Model:{" "}
+              Modell:{" "}
               <span className="font-medium text-foreground">
                 {formatRepaymentModel(selectedInvestment.repaymentModel)}
               </span>
@@ -64,7 +64,7 @@ export default function AdminRepaymentSchedulePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All investments</SelectItem>
+              <SelectItem value="all">Alle Investitionen</SelectItem>
               {investments.map((inv) => (
                 <SelectItem key={inv.id} value={inv.id}>
                   {inv.investorName || formatCurrency(inv.principal)} ·{" "}
@@ -77,8 +77,8 @@ export default function AdminRepaymentSchedulePage() {
       </div>
       {filtered.length === 0 ? (
         <EmptyState
-          title="No schedule rows"
-          description="Schedules appear after investments are created."
+          title="Keine Planzeilen"
+          description="Tilgungspläne erscheinen, sobald Investitionen angelegt sind."
         />
       ) : (
         <DataTable

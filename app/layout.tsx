@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Depth Capital | Private Debt Investor Portal",
-  description: "Enterprise private debt investor dashboard and administration portal.",
+  title: "Depth Capital | Private-Debt-Investorenportal",
+  description: "Unternehmensportal für Private-Debt-Investoren und Administration.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="de"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >

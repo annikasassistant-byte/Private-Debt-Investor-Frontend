@@ -25,7 +25,7 @@ export function NotificationDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative rounded-xl")}
-        aria-label="Notifications"
+        aria-label="Benachrichtigungen"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (
@@ -35,11 +35,11 @@ export function NotificationDropdown() {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 rounded-xl">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <DropdownMenuLabel>Benachrichtigungen</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.length === 0 ? (
           <DropdownMenuItem disabled className="text-muted-foreground">
-            No notifications yet
+            Noch keine Benachrichtigungen
           </DropdownMenuItem>
         ) : (
           notifications.map((n) => (

@@ -12,7 +12,7 @@ export function BrandedLoader({ className }: { className?: string }) {
         className
       )}
       role="status"
-      aria-label="Loading"
+      aria-label="Laden"
     >
       <div className="relative flex h-16 w-16 items-center justify-center">
         <motion.div

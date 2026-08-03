@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AuthGuard allowedRoles={["admin"]}>
       <DashboardShell
-        sidebar={<AppSidebar groups={adminNavGroups} label="Administration" />}
+        sidebar={<AppSidebar groups={adminNavGroups} label="Verwaltung" />}
         topbar={<TopNavbar profileHref="/admin/profile" />}
       >
         {children}
