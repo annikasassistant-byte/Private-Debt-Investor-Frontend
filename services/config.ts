@@ -9,9 +9,9 @@ export const REFRESH_TOKEN_KEY = "depth-refresh-token";
 export const DEVICE_ID_KEY = "depth-device-id";
 
 /**
- * In-memory token cache only (never localStorage).
- * Auth prefers httpOnly cookies set by the API; memory tokens support Socket.IO
- * and same-tab Bearer fallback after login/refresh.
+ * Token cache: memory (fast path) + sessionStorage (survives hard refresh in-tab).
+ * httpOnly cookies remain preferred when the browser sends them cross-site.
+ * Never use localStorage for tokens.
  */
 let memoryAccessToken: string | null = null;
 let memoryRefreshToken: string | null = null;
@@ -26,15 +26,40 @@ function clearLegacyLocalStorageTokens() {
   }
 }
 
+function readSession(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(key: string, value: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) sessionStorage.setItem(key, value);
+    else sessionStorage.removeItem(key);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 export function getStoredAccessToken(): string | null {
   if (typeof window === "undefined") return null;
   clearLegacyLocalStorageTokens();
+  if (memoryAccessToken) return memoryAccessToken;
+  const fromSession = readSession(AUTH_TOKEN_KEY);
+  if (fromSession) memoryAccessToken = fromSession;
   return memoryAccessToken;
 }
 
 export function getStoredRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
   clearLegacyLocalStorageTokens();
+  if (memoryRefreshToken) return memoryRefreshToken;
+  const fromSession = readSession(REFRESH_TOKEN_KEY);
+  if (fromSession) memoryRefreshToken = fromSession;
   return memoryRefreshToken;
 }
 
@@ -51,8 +76,14 @@ export function getOrCreateDeviceId(): string {
 export function persistTokens(accessToken?: string | null, refreshToken?: string | null) {
   if (typeof window === "undefined") return;
   clearLegacyLocalStorageTokens();
-  if (accessToken !== undefined) memoryAccessToken = accessToken || null;
-  if (refreshToken !== undefined) memoryRefreshToken = refreshToken || null;
+  if (accessToken !== undefined) {
+    memoryAccessToken = accessToken || null;
+    writeSession(AUTH_TOKEN_KEY, memoryAccessToken);
+  }
+  if (refreshToken !== undefined) {
+    memoryRefreshToken = refreshToken || null;
+    writeSession(REFRESH_TOKEN_KEY, memoryRefreshToken);
+  }
 }
 
 export function clearTokens() {
@@ -60,4 +91,6 @@ export function clearTokens() {
   memoryAccessToken = null;
   memoryRefreshToken = null;
   clearLegacyLocalStorageTokens();
+  writeSession(AUTH_TOKEN_KEY, null);
+  writeSession(REFRESH_TOKEN_KEY, null);
 }

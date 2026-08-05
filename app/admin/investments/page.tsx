@@ -51,6 +51,8 @@ const emptyForm = {
   repaymentModel: "amortizing",
   borrower: "",
   startDate: new Date().toISOString().slice(0, 10),
+  gracePeriodMonths: "0",
+  balloonAmount: "0",
 };
 
 const statusLabels: Record<string, string> = {
@@ -81,6 +83,8 @@ export default function AdminInvestmentsPage() {
     repaymentModel: "amortizing",
     status: "active",
     notes: "",
+    gracePeriodMonths: "0",
+    balloonAmount: "0",
   });
   const [earlyForm, setEarlyForm] = useState({ amount: "", interestPortion: "", notes: "" });
 
@@ -138,6 +142,8 @@ export default function AdminInvestmentsPage() {
                   repaymentModel: inv.repaymentModel || "amortizing",
                   status: inv.status,
                   notes: "",
+                  gracePeriodMonths: String(inv.gracePeriodMonths ?? 0),
+                  balloonAmount: String(inv.balloonAmount ?? 0),
                 });
                 setEditOpen(true);
               }}
@@ -178,7 +184,12 @@ export default function AdminInvestmentsPage() {
             <Button
               variant="ghost"
               size="icon"
+              title="Investition löschen"
               onClick={async () => {
+                const ok = window.confirm(
+                  "Investition wirklich löschen?\n\nZugehörige Zahlungen und Zeitachsen-Ereignisse werden entfernt. Dieser Vorgang kann nicht rückgängig gemacht werden."
+                );
+                if (!ok) return;
                 try {
                   await deleteInvestment(row.original.id).unwrap();
                   toast.success("Investition entfernt");
@@ -254,6 +265,8 @@ export default function AdminInvestmentsPage() {
                   ["paymentDay", "Zahlungstag (1–31)"],
                   ["startDate", "Startdatum"],
                   ["borrower", "Kreditnehmer (optional — legt Kredit an)"],
+                  ["gracePeriodMonths", "tilgungsfreie Monate (optional)"],
+                  ["balloonAmount", "Schlussrate / Balloon (€, optional)"],
                 ] as const
               ).map(([key, label]) => (
                 <div key={key} className="space-y-2">
@@ -265,6 +278,10 @@ export default function AdminInvestmentsPage() {
                   />
                 </div>
               ))}
+              <p className="text-xs text-muted-foreground">
+                Tilgungsfreie Monate: nur Finanzierungsgebühr. Schlussrate wird bei Annuität berücksichtigt.
+                Nicht verfügbar für „Feste Monatsrate“.
+              </p>
               <div className="space-y-2">
                 <Label>Rückzahlungsmodell</Label>
                 <Select
@@ -305,6 +322,8 @@ export default function AdminInvestmentsPage() {
                       paymentDay: Number(form.paymentDay),
                       repaymentModel: form.repaymentModel,
                       startDate: form.startDate,
+                      gracePeriodMonths: Number(form.gracePeriodMonths || 0),
+                      balloonAmount: Number(form.balloonAmount || 0),
                       ...(form.borrower ? { borrower: form.borrower } : {}),
                     }).unwrap();
                     toast.success("Investition angelegt");
@@ -334,6 +353,8 @@ export default function AdminInvestmentsPage() {
                 ["interestRate", "Finanzierungsgebühr (%)"],
                 ["termMonths", "Laufzeit (Monate)"],
                 ["paymentDay", "Zahlungstag (1–31)"],
+                ["gracePeriodMonths", "tilgungsfreie Monate"],
+                ["balloonAmount", "Schlussrate / Balloon (€)"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="space-y-2">
@@ -396,7 +417,8 @@ export default function AdminInvestmentsPage() {
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              Änderungen an Hauptsumme, Satz, Laufzeit, Zahlungstag oder Modell erzeugen unbezahlte Planzeilen neu.
+              Änderungen an Hauptsumme, Satz, Laufzeit, Zahlungstag, Modell, tilgungsfreien Monaten
+              oder Schlussrate erzeugen unbezahlte Planzeilen neu.
             </p>
           </div>
           <DialogFooter>
@@ -414,6 +436,8 @@ export default function AdminInvestmentsPage() {
                       paymentDay: Number(editForm.paymentDay),
                       repaymentModel: editForm.repaymentModel,
                       status: editForm.status,
+                      gracePeriodMonths: Number(editForm.gracePeriodMonths || 0),
+                      balloonAmount: Number(editForm.balloonAmount || 0),
                     },
                   }).unwrap();
                   toast.success("Investition aktualisiert");

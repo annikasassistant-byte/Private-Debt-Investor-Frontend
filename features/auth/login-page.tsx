@@ -88,8 +88,8 @@ export function LoginPage() {
       const data = await login(values).unwrap();
       setSession({
         user: data.user,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
+        accessToken: data.accessToken ?? null,
+        refreshToken: data.refreshToken ?? null,
       });
       const mapped = useAuthStore.getState().user;
       const redirect = searchParams.get("redirect");
@@ -102,6 +102,15 @@ export function LoginPage() {
           ? redirect
           : null;
       const target = safeRedirect || roleHome;
+
+      // Hint for Next middleware — investors never enter /admin shells
+      try {
+        if (mapped?.role) {
+          document.cookie = `depth_role_hint=${mapped.role}; path=/; SameSite=Lax; Max-Age=604800`;
+        }
+      } catch {
+        /* ignore */
+      }
 
       setNavigating(true);
       toast.success("Willkommen zurück");

@@ -185,7 +185,11 @@ export default function AdminContractsPage() {
             <DocumentCard
               key={c.id}
               title={displayContractTitle(c.title, c.type, index)}
-              meta={`Unterzeichnet ${c.signedAt} · ${c.size}`}
+              meta={`Unterzeichnet ${c.signedAt} · ${c.size} · ${
+                (c.assignedInvestors?.length || 0) === 0
+                  ? "Keine Investoren zugewiesen"
+                  : `${c.assignedInvestors!.length} Investor(en) zugewiesen`
+              }`}
               badge={CONTRACT_TYPE_LABELS[c.type] || c.type.replace(/_/g, " ")}
               downloadPath={`/contracts/${c.id}/download`}
               onDelete={async () => {

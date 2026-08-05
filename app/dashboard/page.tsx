@@ -81,7 +81,14 @@ export default function InvestorDashboardPage() {
   const nextPaymentDate = stats?.nextPaymentDate ?? null;
   const maturityDate = stats?.maturityDate ?? investments[0]?.maturityDate;
 
-  const recent = [...payments].reverse().slice(0, 5);
+  const recent = [...payments]
+    .filter((p) => p.status === "completed" || p.status === "partially_paid")
+    .sort((a, b) => {
+      const aKey = a.paymentDate || a.dueDate || "";
+      const bKey = b.paymentDate || b.dueDate || "";
+      return String(bKey).localeCompare(String(aKey));
+    })
+    .slice(0, 5);
   const chartPayments = paymentsToChartSeries(payments, {
     limit: 12,
     anchorDates: investments.flatMap((inv) => [inv.startDate].filter(Boolean)),
@@ -240,24 +247,33 @@ export default function InvestorDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-4">
-            {recent.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between rounded-xl border border-border/40 bg-muted/10 px-4 py-3 text-sm transition-colors hover:bg-primary/[0.03]"
-              >
-                <div>
-                  <p className="font-medium">{formatDate(p.dueDate)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Tilgung {formatCurrency(p.principal)} · Finanzierungsgebühr{" "}
-                    {formatCurrency(p.interest)}
-                  </p>
+            {recent.length === 0 ? (
+              <EmptyState
+                title="Noch keine Zahlungen"
+                description="Bestätigte Rückzahlungen erscheinen hier."
+              />
+            ) : (
+              recent.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between rounded-xl border border-border/40 bg-muted/10 px-4 py-3 text-sm transition-colors hover:bg-primary/[0.03]"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {formatDate(p.paymentDate || p.dueDate)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tilgung {formatCurrency(p.principal)} · Finanzierungsgebühr{" "}
+                      {formatCurrency(p.interest)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold tabular-financial">{formatCurrency(p.total)}</p>
+                    <StatusBadge status={p.status} />
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold tabular-financial">{formatCurrency(p.total)}</p>
-                  <StatusBadge status={p.status} />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
         <div
