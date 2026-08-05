@@ -33,7 +33,7 @@ export function getRedirectForRole(role: UserRole): string {
   return role === "admin" ? "/admin/dashboard" : "/dashboard";
 }
 
-export function getApiErrorMessage(error: unknown, fallback = "Something went wrong"): string {
+export function getApiErrorMessage(error: unknown, fallback = "Etwas ist schiefgelaufen"): string {
   if (!error || typeof error !== "object") return fallback;
   const err = error as {
     data?: { message?: string; errors?: Array<{ msg?: string; message?: string }> };

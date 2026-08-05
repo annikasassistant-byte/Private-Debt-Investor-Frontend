@@ -26,6 +26,7 @@ import {
   useGetTimelineQuery,
 } from "@/services/domainApi";
 import { timelineToNotifications } from "@/lib/timeline-notifications";
+import { localizeTimelineEvent } from "@/lib/timeline-i18n";
 import { EmptyState } from "@/components/shared/empty-state";
 
 export default function AdminDashboardPage() {
@@ -66,13 +67,16 @@ export default function AdminDashboardPage() {
     fill: statusColors[name] || "var(--chart-5)",
   }));
 
-  const activities = timeline.slice(0, 6).map((t) => ({
-    id: t.id,
-    action: t.title,
-    subject: t.description,
-    user: "System",
-    timestamp: t.date,
-  }));
+  const activities = timeline.slice(0, 6).map((t) => {
+    const localized = localizeTimelineEvent(t);
+    return {
+      id: t.id,
+      action: localized.title,
+      subject: localized.description,
+      user: "System",
+      timestamp: t.date,
+    };
+  });
   const notifications = timelineToNotifications(timeline, 6);
 
   return (

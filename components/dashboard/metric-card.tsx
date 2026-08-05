@@ -79,10 +79,10 @@ export function MetricCard({
               <TrendingDown className="h-3.5 w-3.5" />
             )}
             {Math.abs(trend)}%
-            <span className="font-normal text-muted-foreground">vs prior</span>
+            <span className="font-normal text-muted-foreground">ggü. vorher</span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Live portfolio</span>
+          <span className="text-xs text-muted-foreground">Live-Portfolio</span>
         )}
         {sparkline && sparkline.length > 1 && (
           <Sparkline data={sparkline} positive={trendUp} />

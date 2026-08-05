@@ -3,7 +3,7 @@
 const MODEL_LABELS: Record<string, string> = {
   amortizing: "Annuitätisch",
   interest_only: "Nur Finanzierungsgebühr",
-  bullet: "Bullet",
+  bullet: "Bullet (Endfälligkeit)",
   fixed_monthly_payment: "Feste Monatsrate",
 };
 
@@ -15,6 +15,6 @@ export function formatRepaymentModel(model?: string | null) {
 export const REPAYMENT_MODEL_OPTIONS = [
   { value: "amortizing", label: "Annuitätisch" },
   { value: "interest_only", label: "Nur Finanzierungsgebühr" },
-  { value: "bullet", label: "Bullet" },
+  { value: "bullet", label: "Bullet (Endfälligkeit)" },
   { value: "fixed_monthly_payment", label: "Feste Monatsrate" },
 ] as const;

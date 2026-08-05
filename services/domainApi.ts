@@ -20,9 +20,21 @@ function unwrapList<T>(response: ApiSuccess<T[]> | ApiSuccess<ListResult<T>>): T
   return [];
 }
 
+const PORTFOLIO_TAGS = [
+  "Investments",
+  "Payments",
+  "Dashboard",
+  "Timeline",
+  "Investors",
+  "Loans",
+] as const;
+
 export const domainApi = createApi({
   reducerPath: "domainApi",
   baseQuery: baseQueryWithReauth,
+  refetchOnMountOrArgChange: true,
+  refetchOnFocus: true,
+  keepUnusedDataFor: 15,
   tagTypes: [
     "Investors",
     "Investments",
@@ -109,20 +121,20 @@ export const domainApi = createApi({
     createInvestment: builder.mutation<Investment, Record<string, unknown>>({
       query: (body) => ({ url: "/investments", method: "POST", body }),
       transformResponse: (r: ApiSuccess<Investment>) => r.data,
-      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline", "Investors", "Loans"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     updateInvestment: builder.mutation<Investment, { id: string; body: Record<string, unknown> }>({
       query: ({ id, body }) => ({ url: `/investments/${id}`, method: "PATCH", body }),
       transformResponse: (r: ApiSuccess<Investment>) => r.data,
-      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     deleteInvestment: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/investments/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Investments", "Dashboard", "Investors", "Payments", "Loans"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     regenerateSchedule: builder.mutation<{ data?: Payment[] }, string>({
       query: (id) => ({ url: `/investments/${id}/regenerate-schedule`, method: "POST" }),
-      invalidatesTags: ["Payments", "Investments", "Timeline"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     earlyRepayment: builder.mutation<
       Investment,
@@ -134,7 +146,7 @@ export const domainApi = createApi({
         body,
       }),
       transformResponse: (r: ApiSuccess<Investment>) => r.data,
-      invalidatesTags: ["Investments", "Payments", "Dashboard", "Timeline"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
 
     getLoans: builder.query<Loan[], void>({
@@ -145,22 +157,22 @@ export const domainApi = createApi({
     createLoan: builder.mutation<Loan, Record<string, unknown>>({
       query: (body) => ({ url: "/loans", method: "POST", body }),
       transformResponse: (r: ApiSuccess<Loan>) => r.data,
-      invalidatesTags: ["Loans", "Timeline"],
+      invalidatesTags: ["Loans", "Timeline", "Dashboard", "Investments"],
     }),
     updateLoan: builder.mutation<Loan, { id: string; body: Record<string, unknown> }>({
       query: ({ id, body }) => ({ url: `/loans/${id}`, method: "PATCH", body }),
       transformResponse: (r: ApiSuccess<Loan>) => r.data,
-      invalidatesTags: ["Loans"],
+      invalidatesTags: ["Loans", "Dashboard"],
     }),
     deleteLoan: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/loans/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Loans"],
+      invalidatesTags: ["Loans", "Timeline", "Dashboard"],
     }),
 
     getPayments: builder.query<Payment[], { investmentId?: string } | void>({
       query: (params) => ({
         url: "/payments",
-        params: { limit: 200, ...(params || {}) },
+        params: { limit: 500, ...(params || {}) },
       }),
       transformResponse: (r: ApiSuccess<Payment[]>) => unwrapList(r),
       providesTags: ["Payments"],
@@ -177,7 +189,7 @@ export const domainApi = createApi({
         body: body || {},
       }),
       transformResponse: (r: ApiSuccess<Payment>) => r.data,
-      invalidatesTags: ["Payments", "Investments", "Dashboard", "Timeline"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     cancelPayment: builder.mutation<Payment, { id: string; body?: Record<string, unknown> }>({
       query: ({ id, body }) => ({
@@ -186,7 +198,7 @@ export const domainApi = createApi({
         body: body || {},
       }),
       transformResponse: (r: ApiSuccess<Payment>) => r.data,
-      invalidatesTags: ["Payments", "Investments", "Dashboard"],
+      invalidatesTags: [...PORTFOLIO_TAGS],
     }),
 
     getReports: builder.query<Report[], void>({
@@ -230,7 +242,7 @@ export const domainApi = createApi({
     }),
 
     getTimeline: builder.query<TimelineEvent[], void>({
-      query: () => ({ url: "/timeline", params: { limit: 200 } }),
+      query: () => ({ url: "/timeline", params: { limit: 500, sort: "date" } }),
       transformResponse: (r: ApiSuccess<TimelineEvent[]>) => unwrapList(r),
       providesTags: ["Timeline"],
     }),

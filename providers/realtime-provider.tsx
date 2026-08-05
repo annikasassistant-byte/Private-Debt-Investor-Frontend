@@ -10,9 +10,10 @@ import { useAppDispatch } from "@/store/hooks";
 
 const PAYMENT_EVT = "server:payment_updated";
 const TIMELINE_EVT = "server:timeline_updated";
+const DASHBOARD_EVT = "server:dashboard_updated";
 
 /**
- * Connects to Socket.IO when authenticated; invalidates RTK caches on payment/timeline events.
+ * Connects to Socket.IO when authenticated; invalidates RTK caches on portfolio events.
  */
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -38,7 +39,14 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     const invalidate = () => {
       dispatch(
-        domainApi.util.invalidateTags(["Payments", "Investments", "Dashboard", "Timeline"])
+        domainApi.util.invalidateTags([
+          "Payments",
+          "Investments",
+          "Dashboard",
+          "Timeline",
+          "Loans",
+          "Investors",
+        ])
       );
     };
 
@@ -46,9 +54,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       invalidate();
       toast.message("Zahlungsaktualisierung empfangen");
     });
-    socket.on(TIMELINE_EVT, () => {
-      invalidate();
-    });
+    socket.on(TIMELINE_EVT, invalidate);
+    socket.on(DASHBOARD_EVT, invalidate);
     socket.on("connect_error", () => {
       // Silent — realtime is best-effort
     });
