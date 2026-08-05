@@ -67,7 +67,11 @@ export function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Label>Design</Label>
-            <Select value={theme} onValueChange={(v) => v && setTheme(v)}>
+            <Select
+              value={theme}
+              onValueChange={(v) => v && setTheme(v)}
+              items={{ light: "Hell", dark: "Dunkel", system: "System" }}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Design" />
               </SelectTrigger>

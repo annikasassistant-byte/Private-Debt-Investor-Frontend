@@ -103,7 +103,16 @@ export default function AdminReportsPage() {
             </div>
             <div className="space-y-2">
               <Label>Kategorie</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v || "other")}>
+              <Select
+                value={category}
+                onValueChange={(v) => setCategory(v || "other")}
+                items={Object.fromEntries(
+                  ["monthly", "quarterly", "annual", "kpi", "other"].map((c) => [
+                    c,
+                    categoryLabels[c] || c,
+                  ])
+                )}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

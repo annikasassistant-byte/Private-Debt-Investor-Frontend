@@ -102,6 +102,7 @@ export default function AdminRepaymentSchedulePage() {
               ? selectedId
               : investments[0]?.id || rows[0]?.investmentId
           }
+          mobileVisibleColumns={["dueDate", "total", "status"]}
         />
       )}
     </div>

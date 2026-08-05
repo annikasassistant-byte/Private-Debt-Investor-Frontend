@@ -135,6 +135,12 @@ export default function AdminLoansPage() {
                 <Select
                   value={form.investmentId}
                   onValueChange={(v) => setForm((f) => ({ ...f, investmentId: v || "" }))}
+                  items={Object.fromEntries(
+                    investments.map((inv) => [
+                      inv.id,
+                      `${inv.investorName || "Investor"} — ${formatCurrency(inv.principal)}`,
+                    ])
+                  )}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Investition auswählen" />

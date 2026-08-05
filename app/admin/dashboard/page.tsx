@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import {
   useGetInvestmentsQuery,
+  useGetLoansQuery,
   useGetPaymentsQuery,
   useGetTimelineQuery,
 } from "@/services/domainApi";
@@ -35,10 +36,18 @@ export default function AdminDashboardPage() {
   const { data: payments = [] } = useGetPaymentsQuery();
   const { data: timeline = [] } = useGetTimelineQuery();
   const { data: investments = [] } = useGetInvestmentsQuery();
+  const { data: loans = [] } = useGetLoansQuery();
 
   if (isLoading || !stats) return <LoadingSkeleton variant="page" />;
 
-  const chartFromPayments = paymentsToChartSeries(payments, 12);
+  const chartFromPayments = paymentsToChartSeries(payments, {
+    limit: 12,
+    anchorDates: [
+      ...investments.map((inv) => inv.startDate),
+      ...loans.map((loan) => loan.fundedAt),
+    ].filter(Boolean),
+    openingBalance: investments.reduce((sum, inv) => sum + (inv.principal || 0), 0),
+  });
 
   const statusColors: Record<string, string> = {
     active: "var(--chart-1)",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DocumentCard } from "@/components/documents/document-card";
 import { InvestorMultiSelect } from "@/components/documents/investor-multi-select";
 import { Upload } from "lucide-react";
@@ -32,13 +32,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  CONTRACT_TYPE_LABELS,
+  defaultContractTitleForType,
+  displayContractTitle,
+} from "@/lib/document-titles";
+import { selectItems } from "@/lib/select-items";
 
-const contractTypeLabels: Record<string, string> = {
-  loan_agreement: "Kreditvertrag",
-  subordinated_loan: "Nachrangdarlehen",
-  amendment: "Nachtrag",
-  additional: "Zusätzlich",
-};
+const CONTRACT_TYPES = [
+  "loan_agreement",
+  "subordinated_loan",
+  "amendment",
+  "additional",
+] as const;
 
 export default function AdminContractsPage() {
   const { data: contracts = [], isLoading, isError, refetch } = useGetContractsQuery();
@@ -47,9 +53,20 @@ export default function AdminContractsPage() {
   const [deleteContract] = useDeleteContractMutation();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState("loan_agreement");
+  const [type, setType] = useState<string>("loan_agreement");
+  const [title, setTitle] = useState(defaultContractTitleForType("loan_agreement"));
   const [investorIds, setInvestorIds] = useState<string[]>([]);
+
+  const typeItems = useMemo(
+    () =>
+      selectItems(
+        CONTRACT_TYPES.map((t) => ({
+          value: t,
+          label: CONTRACT_TYPE_LABELS[t] || t,
+        }))
+      ),
+    []
+  );
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
   if (isError) {
@@ -90,7 +107,6 @@ export default function AdminContractsPage() {
                 onChange={(e) => {
                   const f = e.target.files?.[0] || null;
                   setFile(f);
-                  if (f && !title) setTitle(f.name);
                 }}
               />
             </div>
@@ -100,19 +116,25 @@ export default function AdminContractsPage() {
             </div>
             <div className="space-y-2">
               <Label>Typ</Label>
-              <Select value={type} onValueChange={(v) => setType(v || "loan_agreement")}>
+              <Select
+                value={type}
+                items={typeItems}
+                onValueChange={(v) => {
+                  const next = v || "loan_agreement";
+                  setType(next);
+                  setTitle((prev) => {
+                    const wasDefault = Object.values(CONTRACT_TYPE_LABELS).includes(prev);
+                    return wasDefault || !prev ? defaultContractTitleForType(next) : prev;
+                  });
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[
-                    "loan_agreement",
-                    "subordinated_loan",
-                    "amendment",
-                    "additional",
-                  ].map((t) => (
+                  {CONTRACT_TYPES.map((t) => (
                     <SelectItem key={t} value={t}>
-                      {contractTypeLabels[t] || t}
+                      {CONTRACT_TYPE_LABELS[t] || t}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -130,7 +152,7 @@ export default function AdminContractsPage() {
               onClick={async () => {
                 if (!file) return;
                 const fd = new FormData();
-                fd.append("title", title);
+                fd.append("title", displayContractTitle(title, type));
                 fd.append("type", type);
                 fd.append("file", file);
                 if (investorIds.length) {
@@ -141,7 +163,8 @@ export default function AdminContractsPage() {
                   toast.success("Vertrag hochgeladen");
                   setOpen(false);
                   setFile(null);
-                  setTitle("");
+                  setType("loan_agreement");
+                  setTitle(defaultContractTitleForType("loan_agreement"));
                   setInvestorIds([]);
                 } catch (error) {
                   toast.error(getApiErrorMessage(error, "Upload fehlgeschlagen"));
@@ -158,12 +181,12 @@ export default function AdminContractsPage() {
         <EmptyState title="Keine Verträge" description="Laden Sie den ersten Vertrag hoch." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {contracts.map((c) => (
+          {contracts.map((c, index) => (
             <DocumentCard
               key={c.id}
-              title={c.title}
+              title={displayContractTitle(c.title, c.type, index)}
               meta={`Unterzeichnet ${c.signedAt} · ${c.size}`}
-              badge={contractTypeLabels[c.type] || c.type.replace(/_/g, " ")}
+              badge={CONTRACT_TYPE_LABELS[c.type] || c.type.replace(/_/g, " ")}
               downloadPath={`/contracts/${c.id}/download`}
               onDelete={async () => {
                 await deleteContract(c.id).unwrap();

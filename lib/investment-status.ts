@@ -146,30 +146,45 @@ export function timelineStatusLabel(
   return paymentDisplayLabel(display);
 }
 
+/** Collapse trailing “..” / multiple periods to a single final period. */
+function normalizeNotePunctuation(note: string): string {
+  return note
+    .replace(/\.{2,}/g, ".")
+    .replace(/\s+\./g, ".")
+    .replace(/\.+$/g, ".")
+    .trim();
+}
+
 /** Localize legacy English weekend/holiday adjustment notes for display. */
 export function localizeDateAdjustmentNote(note?: string | null): string {
   if (!note) return "";
-  if (/verschoben|vertragliches|wochenende|feiertag/i.test(note)) return note;
+  let text = String(note).trim();
 
-  const moved = note.match(
-    /Moved from\s+(\S+)\s+\((weekend|holiday)\)\s+to next business day\s+(\S+)/i
+  const moved = text.match(
+    /Moved from\s+(\S+?)\.?\s+\((weekend|holiday)\)\s+to next business day\s+(\S+?)\.?$/i
   );
   if (moved) {
     const reason = moved[2].toLowerCase() === "weekend" ? "Wochenende" : "Feiertag";
-    return `Verschoben von ${moved[1]} (${reason}) auf den nächsten Geschäftstag ${moved[3]}.`;
+    text = `Verschoben von ${moved[1]} (${reason}) auf den nächsten Geschäftstag ${moved[3]}.`;
+    return normalizeNotePunctuation(text);
   }
 
-  const keep = note.match(
-    /Contractual due date falls on a (weekend|holiday).*kept as agreed/i
+  const keep = text.match(
+    /Contractual due date falls on a (weekend|holiday).*kept as agreed\.?$/i
   );
   if (keep) {
     const reason = keep[1].toLowerCase() === "weekend" ? "Wochenende" : "Feiertag";
-    return `Vertragliches Fälligkeitsdatum fällt auf einen ${reason}; Datum wie vereinbart beibehalten.`;
+    text = `Vertragliches Fälligkeitsdatum fällt auf einen ${reason}; Datum wie vereinbart beibehalten.`;
+    return normalizeNotePunctuation(text);
   }
 
-  return note
-    .replace(/\bweekend\b/gi, "Wochenende")
-    .replace(/\bholiday\b/gi, "Feiertag")
-    .replace(/\bMoved from\b/gi, "Verschoben von")
-    .replace(/\bto next business day\b/gi, "auf den nächsten Geschäftstag");
+  if (!/verschoben|vertragliches|wochenende|feiertag/i.test(text)) {
+    text = text
+      .replace(/\bweekend\b/gi, "Wochenende")
+      .replace(/\bholiday\b/gi, "Feiertag")
+      .replace(/\bMoved from\b/gi, "Verschoben von")
+      .replace(/\bto next business day\b/gi, "auf den nächsten Geschäftstag");
+  }
+
+  return normalizeNotePunctuation(text);
 }
