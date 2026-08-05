@@ -214,11 +214,14 @@ export function DataTable<TData, TValue>({
         />
       ) : (
         <div
-          className="overflow-hidden rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm"
+          className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm"
           style={{ boxShadow: "var(--shadow-card)" }}
         >
-          <div className="max-h-[min(560px,65vh)] overflow-auto">
-            <Table>
+          <p className="border-b border-border/30 px-3 py-1.5 text-[11px] text-muted-foreground sm:hidden">
+            Zur Seite scrollen, um alle Spalten zu sehen
+          </p>
+          <div className="max-h-[min(560px,65vh)] overflow-auto overscroll-x-contain">
+            <Table className="min-w-[640px]">
               <TableHeader className="sticky top-0 z-10 bg-muted/90 backdrop-blur-md">
                 {table.getHeaderGroups().map((hg) => (
                   <TableRow key={hg.id} className="border-border/40 hover:bg-transparent">

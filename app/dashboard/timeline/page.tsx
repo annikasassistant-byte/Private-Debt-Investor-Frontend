@@ -39,7 +39,19 @@ export default function InvestorTimelinePage() {
           </p>
         </div>
         {investments.length > 1 ? (
-          <Select value={selectedId} onValueChange={(v) => setSelectedId(v || "all")}>
+          <Select
+            value={selectedId}
+            onValueChange={(v) => setSelectedId(v || "all")}
+            items={{
+              all: "Alle Investitionen",
+              ...Object.fromEntries(
+                investments.map((inv) => [
+                  inv.id,
+                  `${formatCurrency(inv.principal)} · ${formatRepaymentModel(inv.repaymentModel)}`,
+                ])
+              ),
+            }}
+          >
             <SelectTrigger className="w-[240px]">
               <SelectValue placeholder="Investition" />
             </SelectTrigger>

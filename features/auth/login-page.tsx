@@ -93,12 +93,15 @@ export function LoginPage() {
       });
       const mapped = useAuthStore.getState().user;
       const redirect = searchParams.get("redirect");
-      const target =
-        redirect && redirect.startsWith("/")
+      const roleHome = mapped ? getRedirectForRole(mapped.role) : null;
+      const safeRedirect =
+        redirect &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("//") &&
+        !(mapped?.role === "investor" && redirect.startsWith("/admin"))
           ? redirect
-          : mapped
-            ? getRedirectForRole(mapped.role)
-            : null;
+          : null;
+      const target = safeRedirect || roleHome;
 
       setNavigating(true);
       toast.success("Willkommen zurück");

@@ -33,8 +33,13 @@ export default function AdminPaymentsPage() {
         map.set(loan.investmentId, loan.borrower);
       }
     }
+    for (const inv of investments) {
+      if (!map.has(inv.id) && inv.investorName) {
+        map.set(inv.id, inv.investorName);
+      }
+    }
     return map;
-  }, [loans]);
+  }, [loans, investments]);
 
   const columns: ColumnDef<Payment>[] = useMemo(
     () => [

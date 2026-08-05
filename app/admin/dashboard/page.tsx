@@ -28,6 +28,7 @@ import {
 import { timelineToNotifications } from "@/lib/timeline-notifications";
 import { localizeTimelineEvent } from "@/lib/timeline-i18n";
 import { EmptyState } from "@/components/shared/empty-state";
+import { paymentsToChartSeries } from "@/lib/chart-series";
 
 export default function AdminDashboardPage() {
   const { data: stats, isLoading } = useGetAdminStatsQuery();
@@ -37,12 +38,7 @@ export default function AdminDashboardPage() {
 
   if (isLoading || !stats) return <LoadingSkeleton variant="page" />;
 
-  const chartFromPayments = payments.slice(-12).map((p) => ({
-    month: p.dueDate?.slice(0, 7) || "",
-    principal: p.principal,
-    interest: p.interest,
-    value: p.remainingBalance,
-  }));
+  const chartFromPayments = paymentsToChartSeries(payments, 12);
 
   const statusColors: Record<string, string> = {
     active: "var(--chart-1)",

@@ -59,7 +59,19 @@ export default function AdminRepaymentSchedulePage() {
           ) : null}
         </div>
         {investments.length > 0 ? (
-          <Select value={selectedId} onValueChange={(v) => setSelectedId(v || "all")}>
+          <Select
+            value={selectedId}
+            onValueChange={(v) => setSelectedId(v || "all")}
+            items={{
+              all: "Alle Investitionen",
+              ...Object.fromEntries(
+                investments.map((inv) => [
+                  inv.id,
+                  `${inv.investorName || formatCurrency(inv.principal)} · ${formatRepaymentModel(inv.repaymentModel)}`,
+                ])
+              ),
+            }}
+          >
             <SelectTrigger className="w-[280px]">
               <SelectValue />
             </SelectTrigger>

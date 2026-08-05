@@ -23,6 +23,7 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { deriveInvestmentDisplayStatus } from "@/lib/investment-status";
+import { paymentsToChartSeries } from "@/lib/chart-series";
 import { formatRepaymentModel } from "@/lib/repayment";
 import type { Investment } from "@/types";
 
@@ -81,12 +82,7 @@ export default function InvestorDashboardPage() {
   const maturityDate = stats?.maturityDate ?? investments[0]?.maturityDate;
 
   const recent = [...payments].reverse().slice(0, 5);
-  const chartPayments = payments.slice(-12).map((p) => ({
-    month: p.dueDate.slice(0, 7),
-    principal: p.principal,
-    interest: p.interest,
-    value: p.remainingBalance,
-  }));
+  const chartPayments = paymentsToChartSeries(payments, 12);
 
   return (
     <div className="space-y-10">
