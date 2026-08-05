@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Layers } from "lucide-react";
 import { motion } from "framer-motion";
@@ -54,6 +56,20 @@ function NavMenuItems({ items }: { items: NavItem[] }) {
       })}
     </SidebarMenu>
   );
+}
+
+/** Close mobile sheet overlay when the route changes so exports remain clickable. */
+function MobileSidebarAutoClose() {
+  const pathname = usePathname();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [pathname, isMobile, setOpenMobile]);
+
+  return null;
 }
 
 export function AppSidebar({
@@ -113,6 +129,7 @@ export function DashboardShell({
 }) {
   return (
     <SidebarProvider>
+      <MobileSidebarAutoClose />
       {sidebar}
       <SidebarInset className="mesh-background min-h-screen">
         <header className="sticky top-0 z-30 flex h-[3.75rem] items-center gap-3 border-b border-border/40 bg-background/70 px-4 backdrop-blur-xl lg:px-8">

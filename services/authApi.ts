@@ -1,6 +1,11 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/services/baseQuery";
-import { clearTokens, getOrCreateDeviceId, getStoredRefreshToken } from "@/services/config";
+import {
+  clearTokens,
+  getOrCreateDeviceId,
+  getStoredRefreshToken,
+  persistTokens,
+} from "@/services/config";
 import type {
   ApiSuccess,
   AuthTokensPayload,
@@ -55,6 +60,32 @@ export const authApi = createApi({
           await queryFulfilled;
         } finally {
           clearTokens();
+        }
+      },
+    }),
+
+    refreshSession: builder.mutation<AuthTokensPayload, void>({
+      query: () => {
+        const refreshToken = getStoredRefreshToken();
+        return {
+          url: "/auth/refresh",
+          method: "POST",
+          body: {
+            ...(refreshToken ? { refreshToken } : {}),
+            deviceId: getOrCreateDeviceId(),
+            deviceName: "Depth Web Client",
+          },
+        };
+      },
+      transformResponse: (response: ApiSuccess<AuthTokensPayload>) => response.data,
+      async onQueryStarted(_arg, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data?.accessToken) {
+            persistTokens(data.accessToken, data.refreshToken ?? getStoredRefreshToken());
+          }
+        } catch {
+          /* AuthGuard / baseQuery handle failure */
         }
       },
     }),
@@ -134,6 +165,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useLogoutMutation,
+  useRefreshSessionMutation,
   useForgotPasswordMutation,
   useVerifyOtpMutation,
   useResetPasswordMutation,

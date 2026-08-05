@@ -23,13 +23,23 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-/** Shared RTK base query: httpOnly cookies + optional in-memory Bearer, cookie-first refresh. */
+function requestUrl(args: string | FetchArgs): string {
+  return typeof args === "string" ? args : args.url;
+}
+
+/** Shared RTK base query: httpOnly cookies + session/memory Bearer, cookie-first refresh. */
 export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
+  const url = requestUrl(args);
+
+  // Never run refresh-on-401 for the refresh endpoint itself
+  if (url.includes("/auth/refresh")) {
+    return result;
+  }
 
   if (result.error && result.error.status === 401) {
     const refreshToken = getStoredRefreshToken();
@@ -40,6 +50,7 @@ export const baseQueryWithReauth: BaseQueryFn<
         body: {
           ...(refreshToken ? { refreshToken } : {}),
           deviceId: getOrCreateDeviceId(),
+          deviceName: "Depth Web Client",
         },
       },
       api,

@@ -33,12 +33,18 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       setSession: ({ user, accessToken, refreshToken }) => {
-        if (accessToken) persistTokens(accessToken, refreshToken ?? undefined);
+        // Persist both tokens so hard refresh can rehydrate from sessionStorage
+        persistTokens(accessToken ?? null, refreshToken ?? null);
         set({ user: toClientUser(user), isAuthenticated: true });
       },
       setUser: (user) => set({ user, isAuthenticated: Boolean(user) }),
       logout: () => {
         clearTokens();
+        try {
+          document.cookie = "depth_role_hint=; path=/; Max-Age=0; SameSite=Lax";
+        } catch {
+          /* ignore */
+        }
         set({ user: null, isAuthenticated: false });
       },
       hasRole: (role) => get().user?.role === role,

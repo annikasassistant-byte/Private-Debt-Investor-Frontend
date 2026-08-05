@@ -103,9 +103,35 @@ export function timelineTypeRank(type: string): number {
   return order[type] ?? 50;
 }
 
+/**
+ * Chronological sort with lifecycle coherence:
+ * Paid/early events dated before that investment's start are sorted as of the
+ * start date (after investment_started / loan_funded via type rank).
+ */
 export function sortTimelineChronological(events: TimelineEvent[]): TimelineEvent[] {
+  const startByInvestment = new Map<string, string>();
+  for (const e of events) {
+    if (e.type === "investment_started" && e.investmentId) {
+      startByInvestment.set(e.investmentId, e.date);
+    }
+  }
+
+  const effectiveDate = (e: TimelineEvent): string => {
+    if (
+      (e.type === "completed_payment" || e.type === "interest_payment") &&
+      e.investmentId &&
+      startByInvestment.has(e.investmentId)
+    ) {
+      const start = startByInvestment.get(e.investmentId)!;
+      if (String(e.date).slice(0, 10) < String(start).slice(0, 10)) {
+        return start;
+      }
+    }
+    return e.date;
+  };
+
   return [...events].sort((a, b) => {
-    const byDate = String(a.date).localeCompare(String(b.date));
+    const byDate = String(effectiveDate(a)).localeCompare(String(effectiveDate(b)));
     if (byDate !== 0) return byDate;
     return timelineTypeRank(a.type) - timelineTypeRank(b.type);
   });
