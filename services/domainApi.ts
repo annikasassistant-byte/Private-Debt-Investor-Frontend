@@ -130,6 +130,36 @@ export const domainApi = createApi({
     }),
     deleteInvestment: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/investments/${id}`, method: "DELETE" }),
+      transformResponse: (r: ApiSuccess<{ success: boolean }>) => r.data,
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const removeInvestment = dispatch(
+          domainApi.util.updateQueryData("getInvestments", undefined, (draft) => {
+            const idx = draft.findIndex((inv) => inv.id === id);
+            if (idx >= 0) draft.splice(idx, 1);
+          })
+        );
+        const removePayments = dispatch(
+          domainApi.util.updateQueryData("getPayments", undefined, (draft) => {
+            for (let i = draft.length - 1; i >= 0; i -= 1) {
+              if (draft[i].investmentId === id) draft.splice(i, 1);
+            }
+          })
+        );
+        const removeTimeline = dispatch(
+          domainApi.util.updateQueryData("getTimeline", undefined, (draft) => {
+            for (let i = draft.length - 1; i >= 0; i -= 1) {
+              if (draft[i].investmentId === id) draft.splice(i, 1);
+            }
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          removeInvestment.undo();
+          removePayments.undo();
+          removeTimeline.undo();
+        }
+      },
       invalidatesTags: [...PORTFOLIO_TAGS],
     }),
     regenerateSchedule: builder.mutation<{ data?: Payment[] }, string>({

@@ -5,7 +5,10 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { TimelineEvent } from "@/types";
 import { formatCurrencyPrecise, formatDate } from "@/lib/format";
-import { paymentDisplayLabel } from "@/lib/investment-status";
+import {
+  resolveTimelineDisplayStatus,
+  timelineStatusLabel,
+} from "@/lib/investment-status";
 import {
   eventDay,
   localizeTimelineEvent,
@@ -189,8 +192,9 @@ export function Timeline({
           const event = item.event;
           const localized = localizeTimelineEvent(event);
           const Icon = icons[event.type] ?? Circle;
-          const styles = statusStyles[event.status];
-          const isUpcoming = event.status === "upcoming" || event.id === focusId;
+          const displayStatus = resolveTimelineDisplayStatus(event);
+          const styles = statusStyles[displayStatus];
+          const isUpcoming = displayStatus === "upcoming" || event.id === focusId;
           const alignRight = index % 2 === 1;
 
           return (
@@ -244,7 +248,7 @@ export function Timeline({
                       styles.badge
                     )}
                   >
-                    {paymentDisplayLabel(event.status)}
+                    {timelineStatusLabel(event)}
                   </span>
                 </div>
                 <h3 className="mt-2.5 text-base font-semibold tracking-tight">{localized.title}</h3>

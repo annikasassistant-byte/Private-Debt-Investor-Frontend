@@ -68,6 +68,12 @@ export default function InvestorSchedulePage() {
             <Select
               value={effectiveId}
               onValueChange={(v) => setSelectedId(v || investments[0]?.id || "")}
+              items={Object.fromEntries(
+                investments.map((inv) => [
+                  inv.id,
+                  `${formatCurrency(inv.principal)} · ${formatRepaymentModel(inv.repaymentModel)}`,
+                ])
+              )}
             >
               <SelectTrigger className="w-[240px]">
                 <SelectValue placeholder="Investition wählen" />

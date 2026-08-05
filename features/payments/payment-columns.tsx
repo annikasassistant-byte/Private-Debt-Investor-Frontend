@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Payment } from "@/types";
 import { formatCurrency, formatCurrencyPrecise, formatDate } from "@/lib/format";
+import { localizeDateAdjustmentNote } from "@/lib/investment-status";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -18,7 +19,7 @@ export const paymentColumns: ColumnDef<Payment>[] = [
     ),
     cell: ({ row }) => {
       const p = row.original;
-      const note = p.dateAdjustmentNote;
+      const note = localizeDateAdjustmentNote(p.dateAdjustmentNote);
       return (
         <div>
           <div>{formatDate(p.dueDate)}</div>
