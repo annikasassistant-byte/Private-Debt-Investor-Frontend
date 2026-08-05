@@ -175,6 +175,7 @@ export default function AdminPaymentsPage() {
           data={rows}
           searchKey="status"
           exportInvestmentId={investments[0]?.id || rows[0]?.investmentId}
+          mobileVisibleColumns={["borrowerName", "dueDate", "total", "status", "actions"]}
         />
       )}
     </div>

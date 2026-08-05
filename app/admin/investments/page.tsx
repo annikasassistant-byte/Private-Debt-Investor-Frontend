@@ -40,6 +40,7 @@ import { getApiErrorMessage } from "@/services/auth-mappers";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatRepaymentModel, REPAYMENT_MODEL_OPTIONS } from "@/lib/repayment";
+import { selectItems } from "@/lib/select-items";
 
 const emptyForm = {
   investorId: "",
@@ -231,6 +232,7 @@ export default function AdminInvestmentsPage() {
                 <Select
                   value={form.investorId}
                   onValueChange={(v) => setForm((f) => ({ ...f, investorId: v || "" }))}
+                  items={selectItems(investors.map((inv) => ({ value: inv.id, label: inv.name })))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Investor auswählen" />
@@ -270,6 +272,12 @@ export default function AdminInvestmentsPage() {
                   onValueChange={(v) =>
                     setForm((f) => ({ ...f, repaymentModel: v || "amortizing" }))
                   }
+                  items={selectItems(
+                    REPAYMENT_MODEL_OPTIONS.map((opt) => ({
+                      value: opt.value,
+                      label: opt.label,
+                    }))
+                  )}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -344,6 +352,12 @@ export default function AdminInvestmentsPage() {
                 onValueChange={(v) =>
                   setEditForm((f) => ({ ...f, repaymentModel: v || "amortizing" }))
                 }
+                items={selectItems(
+                  REPAYMENT_MODEL_OPTIONS.map((opt) => ({
+                    value: opt.value,
+                    label: opt.label,
+                  }))
+                )}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -362,6 +376,12 @@ export default function AdminInvestmentsPage() {
               <Select
                 value={editForm.status}
                 onValueChange={(v) => setEditForm((f) => ({ ...f, status: v || "active" }))}
+                items={selectItems(
+                  ["pending", "active", "matured", "closed"].map((s) => ({
+                    value: s,
+                    label: statusLabels[s] || s,
+                  }))
+                )}
               >
                 <SelectTrigger>
                   <SelectValue />

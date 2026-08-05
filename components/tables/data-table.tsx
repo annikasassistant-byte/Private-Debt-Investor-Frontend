@@ -12,7 +12,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -44,6 +44,11 @@ interface DataTableProps<TData, TValue> {
   exportInvestmentId?: string;
   onExportCsv?: () => void | Promise<void>;
   onExportPdf?: () => void | Promise<void>;
+  /**
+   * Column ids kept visible below the `sm` breakpoint.
+   * Other hideable columns are collapsed; user can still restore via Spalten.
+   */
+  mobileVisibleColumns?: string[];
 }
 
 export function DataTable<TData, TValue>({
@@ -55,11 +60,42 @@ export function DataTable<TData, TValue>({
   exportInvestmentId,
   onExportCsv,
   onExportPdf,
+  mobileVisibleColumns,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 639px)");
+    const apply = () => setIsNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileVisibleColumns?.length) return;
+    if (!isNarrow) {
+      setColumnVisibility({});
+      return;
+    }
+    const keep = new Set(mobileVisibleColumns);
+    const next: VisibilityState = {};
+    for (const col of columns) {
+      const id =
+        col.id ||
+        ("accessorKey" in col && typeof col.accessorKey === "string"
+          ? col.accessorKey
+          : undefined);
+      if (!id || id === "actions") continue;
+      if (!keep.has(id)) next[id] = false;
+    }
+    setColumnVisibility(next);
+  }, [isNarrow, mobileVisibleColumns, columns]);
 
   const table = useReactTable({
     data,
@@ -154,13 +190,13 @@ export function DataTable<TData, TValue>({
           placeholder={searchPlaceholder ?? "Suchen…"}
           className="w-full sm:max-w-sm"
         />
-        <div className="flex flex-wrap gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
           {showExport && (
             <>
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl border-border/60 bg-background/80"
+                className="min-h-10 rounded-xl border-border/60 bg-background/80 sm:min-h-8"
                 onClick={() => handleExport("csv")}
               >
                 <FileDown className="mr-2 h-4 w-4" />
@@ -169,7 +205,7 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl border-border/60 bg-background/80"
+                className="min-h-10 rounded-xl border-border/60 bg-background/80 sm:min-h-8"
                 onClick={() => handleExport("pdf")}
               >
                 <FileText className="mr-2 h-4 w-4" />
@@ -181,7 +217,8 @@ export function DataTable<TData, TValue>({
             <DropdownMenuTrigger
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
-                "rounded-xl border-border/60 bg-background/80"
+                "min-h-10 rounded-xl border-border/60 bg-background/80 sm:min-h-8",
+                showExport ? "col-span-2 sm:col-span-1" : "col-span-2"
               )}
             >
               <Columns3 className="mr-2 h-4 w-4" />
@@ -214,14 +251,14 @@ export function DataTable<TData, TValue>({
         />
       ) : (
         <div
-          className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm"
+          className="max-w-full rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm"
           style={{ boxShadow: "var(--shadow-card)" }}
         >
           <p className="border-b border-border/30 px-3 py-1.5 text-[11px] text-muted-foreground sm:hidden">
-            Zur Seite scrollen, um alle Spalten zu sehen
+            Wischen für weitere Spalten · Kernfelder bleiben sichtbar
           </p>
-          <div className="max-h-[min(560px,65vh)] overflow-auto overscroll-x-contain">
-            <Table className="min-w-[640px]">
+          <div className="max-h-[min(560px,65vh)] overflow-x-auto overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+            <Table className={cn(isNarrow ? "min-w-[360px]" : "min-w-[640px]")}>
               <TableHeader className="sticky top-0 z-10 bg-muted/90 backdrop-blur-md">
                 {table.getHeaderGroups().map((hg) => (
                   <TableRow key={hg.id} className="border-border/40 hover:bg-transparent">

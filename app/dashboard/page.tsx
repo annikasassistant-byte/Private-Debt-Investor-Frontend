@@ -82,7 +82,11 @@ export default function InvestorDashboardPage() {
   const maturityDate = stats?.maturityDate ?? investments[0]?.maturityDate;
 
   const recent = [...payments].reverse().slice(0, 5);
-  const chartPayments = paymentsToChartSeries(payments, 12);
+  const chartPayments = paymentsToChartSeries(payments, {
+    limit: 12,
+    anchorDates: investments.flatMap((inv) => [inv.startDate].filter(Boolean)),
+    openingBalance: investments.reduce((sum, inv) => sum + (inv.principal || 0), 0),
+  });
 
   return (
     <div className="space-y-10">

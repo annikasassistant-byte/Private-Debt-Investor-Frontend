@@ -4,6 +4,10 @@ import { DocumentCard } from "@/components/documents/document-card";
 import { useGetContractsQuery } from "@/services/domainApi";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  CONTRACT_TYPE_LABELS,
+  displayContractTitle,
+} from "@/lib/document-titles";
 
 export default function InvestorContractsPage() {
   const { data: contracts = [], isLoading, isError, refetch } = useGetContractsQuery();
@@ -31,12 +35,12 @@ export default function InvestorContractsPage() {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {contracts.map((c) => (
+          {contracts.map((c, index) => (
             <DocumentCard
               key={c.id}
-              title={c.title}
+              title={displayContractTitle(c.title, c.type, index)}
               meta={`Unterzeichnet ${c.signedAt} · ${c.size}`}
-              badge={c.type.replace(/_/g, " ")}
+              badge={CONTRACT_TYPE_LABELS[c.type] || c.type.replace(/_/g, " ")}
               downloadPath={`/contracts/${c.id}/download`}
             />
           ))}

@@ -63,7 +63,7 @@ export default function InvestorSchedulePage() {
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
           {investments.length > 0 ? (
             <Select
               value={effectiveId}
@@ -75,7 +75,7 @@ export default function InvestorSchedulePage() {
                 ])
               )}
             >
-              <SelectTrigger className="w-[240px]">
+              <SelectTrigger className="col-span-2 w-full min-h-10 sm:w-[240px]">
                 <SelectValue placeholder="Investition wählen" />
               </SelectTrigger>
               <SelectContent>
@@ -91,6 +91,7 @@ export default function InvestorSchedulePage() {
             <Button
               key={format}
               variant="outline"
+              className="min-h-10"
               disabled={!effectiveId}
               onClick={async () => {
                 if (!effectiveId) return;
@@ -119,6 +120,7 @@ export default function InvestorSchedulePage() {
           searchKey="status"
           showExport={false}
           exportInvestmentId={effectiveId}
+          mobileVisibleColumns={["dueDate", "total", "status"]}
         />
       )}
     </div>
