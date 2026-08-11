@@ -14,6 +14,7 @@ import {
   User,
   Wallet,
   FolderOpen,
+  Share2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -73,6 +74,7 @@ export const investorNavGroups: NavGroup[] = [
   },
   {
     items: [
+      { title: "BuyBack Capital empfehlen", href: "/dashboard/empfehlen", icon: Share2 },
       { title: "Profil", href: "/dashboard/profile", icon: User },
       { title: "Einstellungen", href: "/dashboard/settings", icon: Settings },
     ],

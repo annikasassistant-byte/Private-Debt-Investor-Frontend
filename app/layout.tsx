@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Depth Capital | Private-Debt-Investorenportal",
+  title: "BuyBack Capital | Private-Debt-Investorenportal",
   description: "Unternehmensportal für Private-Debt-Investoren und Administration.",
 };
 

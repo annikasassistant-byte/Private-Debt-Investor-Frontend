@@ -1,6 +1,6 @@
-# Depth Capital — Private Debt Investor Dashboard
+# BuyBack Capital — Private Debt Investor Dashboard
 
-Frontend-only Next.js investor portal with mock data, role-based auth, and admin tooling.
+Next.js investor portal with live API, role-based auth, and admin tooling.
 
 ## Stack
 
@@ -26,7 +26,7 @@ Use the **Demo credentials** panel on the login page for one-click fill, copy, o
 
 ## Routes
 
-- **Investor:** `/dashboard`, investment, timeline, schedule, reports, contracts, profile, settings
+- **Investor:** `/dashboard`, investment, timeline, schedule, reports, contracts, empfehlen, profile, settings
 - **Admin:** `/admin/dashboard`, investors, investments, loans, payments, schedules, timeline, reports, contracts, notifications, settings, profile
 - **Auth:** `/login`, `/forgot-password`, `/verify-otp`, `/reset-password`, `/unauthorized`
 

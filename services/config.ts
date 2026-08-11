@@ -4,6 +4,11 @@ export const API_BASE_URL =
 
 export const API_V1 = `${API_BASE_URL}/api/v1`;
 
+/** Public BuyBack Capital landing page (prospect share link). */
+export const LANDING_PAGE_URL =
+  process.env.NEXT_PUBLIC_LANDING_PAGE_URL?.replace(/\/$/, "") ||
+  "https://buy-back-capital.vercel.app";
+
 export const AUTH_TOKEN_KEY = "depth-access-token";
 export const REFRESH_TOKEN_KEY = "depth-refresh-token";
 export const DEVICE_ID_KEY = "depth-device-id";

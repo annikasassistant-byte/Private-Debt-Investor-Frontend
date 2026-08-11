@@ -30,7 +30,7 @@ export function BrandedLoader({ className }: { className?: string }) {
         </div>
       </div>
       <div className="space-y-2 text-center">
-        <p className="text-sm font-medium text-foreground">Depth Capital</p>
+        <p className="text-sm font-medium text-foreground">BuyBack Capital</p>
         <motion.div
           className="mx-auto h-1 w-24 overflow-hidden rounded-full bg-muted"
         >

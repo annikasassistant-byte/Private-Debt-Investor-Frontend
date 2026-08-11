@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
  * Blocks obvious investor soft-nav into admin shells when a role hint cookie/header is present.
  * Always allows through when role is unknown (AuthGuard hydrates from API).
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();

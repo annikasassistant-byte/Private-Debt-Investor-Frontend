@@ -24,7 +24,7 @@ export function AuthFlowShell({
       <div className="glass-panel-strong w-full max-w-md rounded-2xl p-8 shadow-xl">
         <Link href="/login" className="mb-8 flex items-center gap-2 text-primary">
           <Layers className="h-5 w-5" />
-          <span className="text-sm font-semibold">Depth Capital</span>
+          <span className="text-sm font-semibold">BuyBack Capital</span>
         </Link>
 
         <nav aria-label="Fortschritt Passwort-Zurücksetzung" className="mb-8">

@@ -96,7 +96,7 @@ export function AppSidebar({
             <Layers className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold tracking-tight">Depth Capital</span>
+            <span className="text-sm font-semibold tracking-tight">BuyBack Capital</span>
             <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
           </div>
         </Link>
@@ -112,7 +112,7 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter className="border-t border-border/30 p-4 text-[11px] text-muted-foreground group-data-[collapsible=icon]:hidden">
-        © 2026 Depth Capital · Private Debt
+        © 2026 BuyBack Capital · Private Debt
       </SidebarFooter>
     </Sidebar>
   );

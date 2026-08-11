@@ -103,7 +103,7 @@ export function LoginPage() {
           : null;
       const target = safeRedirect || roleHome;
 
-      // Hint for Next middleware — investors never enter /admin shells
+      // Hint for Next proxy — investors never enter /admin shells
       try {
         if (mapped?.role) {
           document.cookie = `depth_role_hint=${mapped.role}; path=/; SameSite=Lax; Max-Age=604800`;
@@ -167,7 +167,7 @@ export function LoginPage() {
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
             <Layers className="h-5 w-5" />
           </div>
-          <span className="text-lg font-semibold tracking-tight">Depth Capital</span>
+          <span className="text-lg font-semibold tracking-tight">BuyBack Capital</span>
         </div>
         <div className="max-w-md space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
@@ -182,7 +182,7 @@ export function LoginPage() {
             institutionelle Investoren.
           </p>
         </div>
-        <p className="text-sm text-muted-foreground">© 2026 Depth Capital</p>
+        <p className="text-sm text-muted-foreground">© 2026 BuyBack Capital</p>
       </motion.section>
 
       <div className="relative flex flex-1 items-center justify-center p-4 py-12 sm:p-8">
@@ -196,7 +196,7 @@ export function LoginPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Layers className="h-5 w-5" />
             </div>
-            <span className="font-semibold">Depth Capital</span>
+            <span className="font-semibold">BuyBack Capital</span>
           </div>
 
           <div className="glass-panel-strong rounded-2xl p-6 sm:p-8">
