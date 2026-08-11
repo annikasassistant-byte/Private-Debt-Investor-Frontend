@@ -15,6 +15,7 @@ import {
   Wallet,
   FolderOpen,
   Share2,
+  PanelsTopLeft,
 } from "lucide-react";
 
 export interface NavItem {
@@ -45,6 +46,12 @@ export const adminNavGroups: NavGroup[] = [
     items: [
       { title: "Finanzberichte", href: "/admin/reports", icon: FileText },
       { title: "Verträge", href: "/admin/contracts", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Website",
+    items: [
+      { title: "BuyBack Landing CMS", href: "/admin/buyback-cms", icon: PanelsTopLeft },
     ],
   },
   {

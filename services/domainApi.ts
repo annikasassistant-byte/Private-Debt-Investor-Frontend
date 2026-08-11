@@ -44,6 +44,7 @@ export const domainApi = createApi({
     "Contracts",
     "Timeline",
     "Dashboard",
+    "BuybackCms",
   ],
   endpoints: (builder) => ({
     getAdminStats: builder.query<Record<string, number>, void>({
@@ -276,6 +277,31 @@ export const domainApi = createApi({
       transformResponse: (r: ApiSuccess<TimelineEvent[]>) => unwrapList(r),
       providesTags: ["Timeline"],
     }),
+
+    getBuybackCms: builder.query<
+      { id: string; key: string; version: number; content: Record<string, unknown>; updatedAt?: string | null },
+      void
+    >({
+      query: () => "/cms/buyback-capital",
+      transformResponse: (r: ApiSuccess<any>) => r.data,
+      providesTags: ["BuybackCms"],
+    }),
+    updateBuybackCms: builder.mutation<
+      { id: string; key: string; version: number; content: Record<string, unknown> },
+      { content: Record<string, unknown> }
+    >({
+      query: (body) => ({ url: "/cms/buyback-capital", method: "PUT", body }),
+      transformResponse: (r: ApiSuccess<any>) => r.data,
+      invalidatesTags: ["BuybackCms"],
+    }),
+    resetBuybackCms: builder.mutation<
+      { id: string; key: string; version: number; content: Record<string, unknown> },
+      void
+    >({
+      query: () => ({ url: "/cms/buyback-capital/reset", method: "POST" }),
+      transformResponse: (r: ApiSuccess<any>) => r.data,
+      invalidatesTags: ["BuybackCms"],
+    }),
   }),
 });
 
@@ -309,4 +335,7 @@ export const {
   useUpdateContractMutation,
   useDeleteContractMutation,
   useGetTimelineQuery,
+  useGetBuybackCmsQuery,
+  useUpdateBuybackCmsMutation,
+  useResetBuybackCmsMutation,
 } = domainApi;
